@@ -1,0 +1,77 @@
+<!DOCTYPE HTML>
+<html lang="en">
+
+<head>
+	<title>KW Panels - Home</title>
+	<meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0">
+	<meta name="apple-mobile-web-app-capable" content="yes" />
+	<meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
+	<!-- stylesheets -->
+	<link rel="stylesheet" href="assets/css/variables.css" type="text/css">
+	<link rel="stylesheet" href="assets/css/global.css" type="text/css">
+	<link rel="stylesheet" href="assets/css/typography.css" type="text/css">
+	<link rel="stylesheet" href="assets/css/buttons.css" type="text/css">
+	<link rel="stylesheet" href="assets/css/header.css" type="text/css">
+	<link rel="stylesheet" href="assets/css/landing.css" type="text/css">
+	<link rel="stylesheet" href="assets/css/sections.css" type="text/css">
+	<link rel="stylesheet" href="assets/css/cards.css" type="text/css">
+	<link rel="stylesheet" href="assets/css/blog.css" type="text/css">
+	<link rel="stylesheet" href="assets/css/footer.css" type="text/css">
+	<link rel="stylesheet" href="assets/css/search.css" type="text/css">
+	<link rel="stylesheet" href="assets/css/modal.css" type="text/css">
+	<!-- JS -->
+	<script type="text/javascript" > if (location.protocol !== "https:") { location.protocol = "https:";}</script>
+	<script type="text/javascript" src="assets/javascripts/jquery-3.6.4.min.js"></script>
+</head>
+
+<body>
+	<section class="landing">
+		<header>
+			<div class="left">
+				<a href=""><img src="assets/images/logo-main.svg" alt="Know Where Graph Logo" /></a>
+			</div>
+			<div class="right" id="menuToggle">
+				<input type="checkbox" />
+					<span></span>
+					<span></span>
+					<span></span>
+				<ul class="nav" id="menu">
+					<li class="nav-item"> <a class="nav-link" id="browse" href="browse/">Browse</a></li>
+					<li class="nav-item">
+						<a class="nav-link" id="search" href="search/">Search</a>
+						<img class="search-icon" src="assets/images/search.svg" alt="search icon">
+					</li>
+<!--					<li class="nav-item above-nav"> <a class="nav-link" id="status" href="https://status.knowwheregraph.org/" target="_blank">Status</a></li>-->
+				</ul>
+			</div>
+		</header>
+		<h1>Know Where Panel</h1>
+		<div class="background"> <img src="assets/images/background-landing.png" alt="Background Imagery - County Map of the USA with a vectored web of lines and nodes wrapping across the country, signifying connections" /> </div>
+	</section>
+	<section class="blog">
+		<div>
+			<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+
+			<p>The Know Where Graph is a geo-knowledge graph that integrates open, cross-domain, densely connected data spanning the human-environment interface. It aims to provide area briefings within seconds for any region on Earth to answer questions such as "What is here?", "What happened here before?", "Who knows more?" and "How does it compare to other regions or previous events?".</p>
+
+			<p>The Know Where Graph is based on existing standards like RDF, OWL and GeoSPARQL, incorporates custom ontologies, and uses a hierarchical grid for spatial representations. It also offers geo-enrichment services that make the graph directly available from within Geographic Information Systems (GIS) and other environments. The Know Where Graph is a novel paradigm for representing, retrieving, and integrating geographic data from highly heterogeneous sources, and it supports various applications in environmental intelligence.</p>
+
+			<a href="browse/" class="button primary mr-15">Browse</a>
+			<a href="search/" class="button secondary mr-15">Search</a>
+		</div>
+	</section>
+	<footer>
+		<div class="footer-wrap">
+			<img src="assets/images/NSF.svg" alt="National Science Foundation Logo"/>
+			<p>Funded by the National Science Foundation. <br>Convergence Accelerated Program Grant OIA - 2033521</p>
+		</div>
+	</footer>
+</body>
+
+</html>
+<script>
+	$(".prototype-card:not(.prototype-full)").click(function() {
+		window.location = $(this).find("a").attr("href");
+		return false;
+	});
+</script>

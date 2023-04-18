@@ -1,0 +1,63 @@
+<!DOCTYPE HTML>
+<html lang="en">
+
+<head>
+	<title>KW Panels - iFrame</title>
+	<meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0">
+	<meta name="apple-mobile-web-app-capable" content="yes" />
+	<meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
+	<!-- stylesheets -->
+	<link rel="stylesheet" href="assets/css/variables.css" type="text/css">
+	<link rel="stylesheet" href="assets/css/global.css" type="text/css">
+	<link rel="stylesheet" href="assets/css/typography.css" type="text/css">
+	<link rel="stylesheet" href="assets/css/buttons.css" type="text/css">
+	<link rel="stylesheet" href="assets/css/header.css" type="text/css">
+	<link rel="stylesheet" href="assets/css/landing.css" type="text/css">
+	<link rel="stylesheet" href="assets/css/sections.css" type="text/css">
+	<link rel="stylesheet" href="assets/css/cards.css" type="text/css">
+	<link rel="stylesheet" href="assets/css/blog.css" type="text/css">
+	<link rel="stylesheet" href="assets/css/footer.css" type="text/css">
+	<link rel="stylesheet" href="assets/css/search.css" type="text/css">
+	<link rel="stylesheet" href="assets/css/modal.css" type="text/css">
+	<!-- JS -->
+	<script type="text/javascript" > if (location.protocol !== "https:") { location.protocol = "https:";}</script>
+	<script type="text/javascript" src="assets/javascripts/jquery-3.6.4.min.js"></script>
+</head>
+
+<body>
+	<section class="landing">
+		<header>
+			<div class="left">
+				<a href="."><img src="assets/images/logo-main.svg" alt="Know Where Graph Logo" /></a>
+			</div>
+			<div class="right" id="menuToggle">
+
+			</div>
+		</header>
+		<h1>iFrame Test</h1>
+		<div class="background"> <img src="assets/images/background-landing.png" alt="Background Imagery - County Map of the USA with a vectored web of lines and nodes wrapping across the country, signifying connections" /> </div>
+	</section>
+	<section class="blog">
+		<div>
+			<iframe src="https://robbie.dev.matrix.msu.edu/~anthon70/KWGpanels/hazard/embed/?hazard=hazard.1184002.5436171" title="Thomas Fire - KWG Panels" style="height:327.719px"></iframe>
+			<br/>
+			<br/>
+			<br/>
+			<iframe src="https://robbie.dev.matrix.msu.edu/~anthon70/KWGpanels/place/embed/?place=census.USCensusMSA.31000US41860.2019" title="San Francisco-Oakland-Berkeley, CA Metro Area (U.S. Census Metropolitan Statistical Area) - KW Panel" style="height:270px"></iframe>
+		</div>
+	</section>
+	<footer>
+		<div class="footer-wrap">
+			<img src="assets/images/NSF.svg" alt="National Science Foundation Logo"/>
+			<p>Funded by the National Science Foundation. <br>Convergence Accelerated Program Grant OIA - 2033521</p>
+		</div>
+	</footer>
+</body>
+
+</html>
+<script>
+	$(".prototype-card:not(.prototype-full)").click(function() {
+		window.location = $(this).find("a").attr("href");
+		return false;
+	});
+</script>

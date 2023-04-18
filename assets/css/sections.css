@@ -1,0 +1,40 @@
+section {
+  padding: 50px 30px;
+}
+
+section > * {
+  margin: 0 auto;
+  max-width: var(--max-width);
+}
+
+section.embed {
+  padding: 0;
+}
+
+section.embed > * {
+  max-width: none;
+}
+
+/*section.embed .prototype-card {*/
+/*  margin-bottom: 0;*/
+/*  padding: 0 20px;*/
+/*}*/
+
+/*section.embed .prototype-card h2 {*/
+/*  margin-top: 20px;*/
+/*}*/
+/*section.embed .prototype-card p {*/
+/*  margin-top: 20px;*/
+/*  margin-bottom: 20px;*/
+/*}*/
+
+.flex {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 30px;
+}
+
+.flex img {
+  object-fit: contain;
+  max-width: 300px;
+}

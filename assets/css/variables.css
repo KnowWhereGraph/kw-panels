@@ -1,0 +1,9 @@
+:root {
+  --accent: #42D6ED;
+  --accent-text: #2BA9BD;
+  --accent-text-hover :#2FB9CF;
+  --base-dark: #00021F;
+  --grey-light: #E9E9E9;
+  --max-width: 1000px;
+  --shadow-light: 0 10px 20px 0 rgba(0, 0, 0, 0.1);
+}

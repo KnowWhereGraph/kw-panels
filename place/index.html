@@ -1,0 +1,111 @@
+<!DOCTYPE HTML>
+<html lang="en">
+
+<head>
+	<title>KW Panels - Place</title>
+	<meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0">
+	<meta name="apple-mobile-web-app-capable" content="yes" />
+	<meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
+	<!-- stylesheets -->
+	<link rel="stylesheet" href="../assets/css/variables.css" type="text/css">
+	<link rel="stylesheet" href="../assets/css/global.css" type="text/css">
+	<link rel="stylesheet" href="../assets/css/typography.css" type="text/css">
+	<link rel="stylesheet" href="../assets/css/buttons.css" type="text/css">
+	<link rel="stylesheet" href="../assets/css/header.css" type="text/css">
+	<link rel="stylesheet" href="../assets/css/landing.css" type="text/css">
+	<link rel="stylesheet" href="../assets/css/sections.css" type="text/css">
+	<link rel="stylesheet" href="../assets/css/cards.css" type="text/css">
+	<link rel="stylesheet" href="../assets/css/blog.css" type="text/css">
+	<link rel="stylesheet" href="../assets/css/footer.css" type="text/css">
+	<link rel="stylesheet" href="../assets/css/search.css" type="text/css">
+	<link rel="stylesheet" href="../assets/css/modal.css" type="text/css">
+	<!-- JS -->
+	<script type="text/javascript" > if (location.protocol !== "https:") { location.protocol = "https:";}</script>
+	<script type="text/javascript" src="../assets/javascripts/jquery-3.6.4.min.js"></script>
+</head>
+
+<body>
+	<section class="landing">
+		<header>
+			<div class="left">
+				<a href="../"><img src="../assets/images/logo-main.svg" alt="Know Where Graph Logo" /></a>
+			</div>
+			<div class="right" id="menuToggle">
+				<input type="checkbox" />
+					<span></span>
+					<span></span>
+					<span></span>
+				<ul class="nav" id="menu">
+					<li class="nav-item"> <a class="nav-link" id="browse" href="../browse/">Browse</a></li>
+					<li class="nav-item">
+						<a class="nav-link" id="search" href="../search/">Search</a>
+						<img class="search-icon" src="../assets/images/search.svg" alt="search icon">
+					</li>
+<!--					<li class="nav-item above-nav"> <a class="nav-link" id="status" href="https://status.knowwheregraph.org/" target="_blank">Status</a></li>-->
+				</ul>
+			</div>
+		</header>
+		<h1 class="place-name-js"></h1>
+		<div class="background"> <img src="../assets/images/background-landing.png" alt="Background Imagery - County Map of the USA with a vectored web of lines and nodes wrapping across the country, signifying connections" /> </div>
+	</section>
+	<section class="blog">
+		<div>
+			<div class="prototype-cards">
+				<div class="prototype-card prototype-full place-card-js">
+					<p>
+						<a target="_blank" class="place-uri-js" href="#">Full Entity URI</a>
+						<a href="" class="modal-js">Embed Entity</a>
+					</p>
+				</div>
+			</div>
+
+			<h3 class="place-hazard-header-js">Related Hazards</h3>
+			<div class="prototype-cards place-hazard-js"></div>
+
+			<h3 class="place-within-header-js">Places Within</h3>
+			<div class="prototype-cards place-within-js"></div>
+
+			<h3 class="place-surround-header-js">Places Surrounding</h3>
+			<div class="prototype-cards place-surround-js"></div>
+
+			<h3 class="place-nearby-header-js">Places Nearby</h3>
+			<div class="prototype-cards place-nearby-js"></div>
+
+			<div class="modal-view modal-view-js">
+				<div class="modal-wrap">
+					<div class="modal-details modal-details-full">
+						<div class="top">
+							<h3 class="place-iframe-header-js"></h3>
+							<textarea class="place-iframe-js" disabled></textarea>
+						</div>
+					</div>
+					<a class="modal-close"><img src="../assets/images/x.svg" alt="Close"></a>
+				</div>
+			</div>
+		</div>
+	</section>
+	<footer>
+		<div class="footer-wrap">
+			<img src="../assets/images/NSF.svg" alt="National Science Foundation Logo"/>
+			<p>Funded by the National Science Foundation. <br>Convergence Accelerated Program Grant OIA - 2033521</p>
+		</div>
+	</footer>
+</body>
+
+</html>
+<script>
+	$(".blog").on("click", ".prototype-card:not(.prototype-full)",function() {
+		window.location = $(this).find("a").attr("href");
+		return false;
+	});
+</script>
+<script type="text/javascript" src="../assets/javascripts/modal.js"></script>
+<script type="text/javascript" src="../assets/javascripts/sparql.js"></script>
+<script>
+	var pageUrl = new URL(window.location.toString());
+	let search_params = pageUrl.searchParams;
+	if(search_params.get('place') != null) {
+		getPlaceEntity(search_params.get('place'));
+		getPlaceEntityYearData(search_params.get('place'));
+	}
+</script>

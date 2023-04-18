@@ -1,0 +1,56 @@
+<!DOCTYPE HTML>
+<html lang="en" class="embed">
+
+<head>
+	<title>KW Panels - Hazard Embed</title>
+	<meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0">
+	<meta name="apple-mobile-web-app-capable" content="yes" />
+	<meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
+	<!-- stylesheets -->
+	<link rel="stylesheet" href="../../assets/css/variables.css" type="text/css">
+	<link rel="stylesheet" href="../../assets/css/global.css" type="text/css">
+	<link rel="stylesheet" href="../../assets/css/typography.css" type="text/css">
+	<link rel="stylesheet" href="../../assets/css/buttons.css" type="text/css">
+	<link rel="stylesheet" href="../../assets/css/header.css" type="text/css">
+	<link rel="stylesheet" href="../../assets/css/landing.css" type="text/css">
+	<link rel="stylesheet" href="../../assets/css/sections.css" type="text/css">
+	<link rel="stylesheet" href="../../assets/css/cards.css" type="text/css">
+	<link rel="stylesheet" href="../../assets/css/blog.css" type="text/css">
+	<link rel="stylesheet" href="../../assets/css/footer.css" type="text/css">
+	<link rel="stylesheet" href="../../assets/css/search.css" type="text/css">
+	<link rel="stylesheet" href="../../assets/css/modal.css" type="text/css">
+	<!-- JS -->
+	<script type="text/javascript" > if (location.protocol !== "https:") { location.protocol = "https:";}</script>
+	<script type="text/javascript" src="../../assets/javascripts/jquery-3.6.4.min.js"></script>
+</head>
+
+<body>
+<section class="blog embed">
+	<div>
+		<div class="prototype-cards">
+			<div class="prototype-card prototype-full hazard-card-js">
+				<p>
+					<a target="_blank" href="../">Explore Entity</a>
+					<a target="_blank" class="hazard-uri-js" href="#">Full Entity URI</a>
+				</p>
+			</div>
+		</div>
+	</div>
+</section>
+</body>
+
+</html>
+<script>
+	$(".blog").on("click", ".prototype-card:not(.prototype-full)",function() {
+		window.location = $(this).find("a").attr("href");
+		return false;
+	});
+</script>
+<script type="text/javascript" src="../../assets/javascripts/sparql.js"></script>
+<script>
+	var pageUrl = new URL(window.location.toString());
+	let search_params = pageUrl.searchParams;
+	if(search_params.get('hazard') != null) {
+		getHazardEntity(search_params.get('hazard'));
+	}
+</script>

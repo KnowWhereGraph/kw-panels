@@ -1,0 +1,156 @@
+/* People Cards */
+.people-cards {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  margin: -20px -15px 60px;
+}
+
+.people-cards:after {
+  content: "";
+  flex: 0 0 32%;
+}
+
+.people-card {
+  border-radius: 5px;
+  width: 30%;
+  height: 100%;
+  margin-bottom: 5px;
+  padding: 15px;
+  transition: all .2s ease;
+}
+
+.people-card:hover {
+  box-shadow: var(--shadow-light);
+  transform: scale(1.02,1.02);
+}
+
+.people-card .top {
+  height: 320px;
+}
+
+.people-card .top img {
+  border-radius: 5px;
+  box-shadow: var(--shadow-light);
+  height: 100%;
+  object-fit: cover;
+  width: 100%;
+}
+
+.people-card .bottom {
+  margin-top: 10px;
+}
+
+.people-card .bottom h4 {
+  margin-top: 0px;
+  margin-bottom: 3px;
+}
+
+.people-card .bottom p {
+  margin: 0px;
+  line-height: 1.3;
+}
+
+@media screen and (max-width: 930px) {
+  .people-card  {
+    width: calc(50% - 30px);
+  }
+}
+
+@media screen and (max-width: 520px) {
+  .people-card  {
+    width: 100%;
+  }
+}
+
+/* Prototype Cards */
+.prototype-cards {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+
+.prototype-card {
+  background: white;
+  border: var(--grey-light) solid 1px;
+  border-radius: 5px;
+  box-shadow: var(--shadow-light);
+  cursor: pointer;
+  height: 100%;
+  padding: 10px 35px 10px;
+  margin-bottom: 30px;
+  transition: all .2s ease;
+  width: calc(50% - 90px);
+}
+
+.prototype-full {
+  cursor: default;
+  width: 100%;
+}
+
+.prototype-card:hover {
+  transform: scale(1.02,1.02);
+}
+
+.prototype-full:hover {
+  transform: none;
+}
+
+.prototype-card p {
+  display: -webkit-box;
+  -webkit-line-clamp: 8;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+ text-overflow: ellipsis;
+}
+
+.prototype-card p span {
+  display: inline-block;
+  width: 48%;
+}
+
+@media screen and (max-width: 800px) {
+  .prototype-card  {
+    width: 100%;
+  }
+  .prototype-card p span {
+    width: 100%;
+  }
+}
+
+
+/* News Cards */
+.news-cards {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+
+.news-card {
+  background: white;
+  border: var(--grey-light) solid 1px;
+  border-radius: 5px;
+  box-shadow: var(--shadow-light);
+  cursor: pointer;
+  height: 100%;
+  padding: 25px;
+  margin-bottom: 30px;
+  transition: all .2s ease;
+  width: 100%;
+}
+
+.news-card p {
+  margin: 0 0 10px 0;
+}
+
+.news-card h3 {
+  margin: 0;
+}
+
+.news-card a {
+  display: none;
+}
+
+.news-card:hover {
+  transform: scale(1.01);
+}

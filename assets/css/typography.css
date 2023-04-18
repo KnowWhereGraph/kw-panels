@@ -1,0 +1,44 @@
+h1 {
+  font-size: 48px;
+  font-weight: bold;
+  margin: 25px 0;
+}
+
+h2 {
+  font-size: 32px;
+  font-weight: bold;
+  margin: 25px 0;
+}
+
+h3 {
+  font-size: 24px;
+  margin: 20px 0;
+}
+
+h4 {
+  font-size: 20px;
+  margin: 20px 0;
+}
+
+h5 {
+  font-size: 16px;
+}
+
+p {
+  font-size: 18px;
+  line-height: 1.5;
+  margin: 20px 0 35px;
+}
+
+ul {
+  margin-bottom: 40px;
+}
+
+li {
+  font-size: 18px;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}

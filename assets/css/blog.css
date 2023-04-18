@@ -1,0 +1,31 @@
+.blog a, .blog p a{
+  color: var(--accent-text);
+  font-weight: bold;
+  text-decoration: underline;
+  transition: all .2s ease;
+}
+
+.blog a:hover {
+  color: var(--accent-text-hover);
+}
+
+.blog figure {
+  margin: 0 0 30px 0;
+}
+
+.blog figure img {
+  width: 100%;
+}
+
+.blog figure figcaption {
+  margin-top: 15px;
+}
+
+.blog ul {
+  margin: -10px 0 30px;
+}
+
+.blog ul li {
+  font-size: 18px;
+  line-height: 1.5;
+}

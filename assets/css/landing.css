@@ -1,0 +1,91 @@
+/* Landing style for home page */
+.landing-home {
+  background: var(--base-dark);
+  color: white;
+  padding: 90px 30px 100px;
+  position: relative;
+}
+
+.slogan {
+  margin: 0 auto;
+  max-width: var(--max-width);
+  position: relative;
+  z-index: 2;
+}
+
+.slogan h1{
+  max-width: 600px;
+}
+
+.landing-home .background {
+  position: absolute;
+  max-width: none;
+  top: 0;
+  z-index: 1;
+}
+
+.landing-home .background img {
+  width: 1230px;
+}
+
+@media screen and (min-width: 1230px) {
+  .landing-home .background  {
+    right: 0;
+  }
+}
+
+/* Landing style for sub pages */
+.landing {
+  background: var(--base-dark);
+  color: white;
+  padding: 50px 30px 60px;
+  position: relative;
+}
+
+.landing h1, .landing p, .landing h4 {
+  margin-top: 20px;
+  position: relative;
+  z-index: 2;
+}
+
+.landing h4 a {
+  color: rgb(185, 184, 180);
+  text-decoration: none;
+  transition: color .3s;
+}
+
+.landing h4 a:hover {
+  color: inherit;
+}
+
+.landing .background {
+  position: absolute;
+  height: 100%;
+  max-width: none;
+  top: 0;
+  z-index: 1;
+}
+
+.landing .background img {
+  height: 100%;
+  object-fit: cover;
+  object-position: -120px 0%;
+  width: 125%;
+}
+
+.landing .breadcrumb {
+  display: flex;
+  align-items: center;
+  position: relative;
+  z-index: 2;
+  margin-top: 20px;
+  transition: all .2s ease;
+}
+
+.landing .breadcrumb:hover {
+  color: var(--accent);
+}
+
+.landing .breadcrumb img {
+  margin-right: 5px;
+}
