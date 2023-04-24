@@ -78,27 +78,23 @@ function drawHazardEntity(result) {
 
     let hazardHtml = "<h2>" + cardHeader + "</h2>";
 
-    let dateArray = [];
+    let propertyString = "";
     if(hazard['start'] != null) {
         const date = new Date(hazard['start']['value']);
-        dateArray.push(date.toString());
+        propertyString += "<span><b>Start Date:</b> " + date.toString().split(' (')[0] + "</span>";
     }
     if(hazard['end'] != null) {
         const date = new Date(hazard['end']['value']);
-        dateArray.push(date.toString());
+        propertyString += "<span><b>End Date:</b> " + date.toString().split(' (')[0] + "</span>";
     }
-    if(dateArray.length > 0)
-        hazardHtml += "<h5>" + dateArray.join(" - "); + "</h5>";
-
-    let propertyString = "";
     if(hazard['area'] != null)
-        propertyString += "<span><b>Area affected:</b> " + hazard['area']['value'] + " acres</span>"
+        propertyString += "<span><b>Area affected:</b> " + hazard['area']['value'] + " acres</span>";
     if(hazard['deaths'] != null)
-        propertyString += "<span><b>Death toll:</b> " + hazard['deaths']['value'] + "</span>"
+        propertyString += "<span><b>Death toll:</b> " + hazard['deaths']['value'] + "</span>";
     if(hazard['infrastructuredamage'] != null)
-        propertyString += "<span><b>Loss of Infrastructure:</b> $" + hazard['infrastructuredamage']['value'] + "</span>"
+        propertyString += "<span><b>Loss of Infrastructure:</b> $" + hazard['infrastructuredamage']['value'] + "</span>";
     if(hazard['cropdamage'] != null)
-        propertyString += "<span><b>Loss of Crops:</b> $" + hazard['cropdamage']['value'] + "</span>"
+        propertyString += "<span><b>Loss of Crops:</b> $" + hazard['cropdamage']['value'] + "</span>";
     if(propertyString != "")
         hazardHtml += "<p>" + propertyString + "</p>";
 
