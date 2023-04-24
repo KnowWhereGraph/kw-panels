@@ -429,8 +429,7 @@ function searchEntities(result) {
 
         const options = {
             includeScore: true,
-            includeMatches: true,
-            ignoreLocation: true,
+            useExtendedSearch: true,
             keys: ['name.value']
         };
         const fuse = new Fuse(result, options);
@@ -438,10 +437,8 @@ function searchEntities(result) {
 
         console.log(searchResults);
         let searchHtml = '';
-        for (var i = 0; i < searchResults.length; i++) {
-            if(searchResults[i]['score'] >= 0.5)
-                break;
-
+        let searchCnt = searchResults.length > 100 ? 100 : searchResults.length;
+        for (var i = 0; i < searchCnt; i++) {
             let result = searchResults[i]['item'];
             let typeLabel = "";
             if(result["type"]["value"].split('/').slice(-1) == "HazardEvent")
