@@ -4,7 +4,8 @@ function getHazardEntity(entityUri) {
     var hazardQuery = "PREFIX kwgl-ont: <http://stko-kwg.geog.ucsb.edu/lod/lite-ontology/>\n" +
         "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n" +
         "PREFIX kwglr: <http://stko-kwg.geog.ucsb.edu/lod/lite-resource/>\n" +
-        "select ?hazard ?name ?fullentity ?type ?subtype ?start ?end (GROUP_CONCAT(?place ; separator=\"||\") AS ?places) ?area ?deaths ?infrastructuredamage ?cropdamage\n" +
+        "select ?hazard ?name ?fullentity ?type ?subtype ?start ?end (GROUP_CONCAT(?place ; separator=\"||\") AS ?places) " +
+        "(GROUP_CONCAT(?pName ; separator=\"||\") AS ?pNames) ?area ?deaths ?infrastructuredamage ?cropdamage\n" +
         "where { \n" +
         "    ?hazard a kwgl-ont:HazardEvent.\n" +
         "    FILTER (?hazard = kwglr:" + entityUri + ") \n" +
@@ -19,6 +20,8 @@ function getHazardEntity(entityUri) {
         "    optional { ?hazard kwgl-ont:hasEndDate ?end. }\n" +
         "    optional {\n" +
         "        ?hazard kwgl-ont:hasImpacted ?place.\n" +
+        "        ?place kwgl-ont:hasName ?pName.\n" +
+        "        ?place kwgl-ont:hasKWGEntity ?pEntity.\n" +
         "    }\n" +
         "    optional { ?hazard kwgl-ont:affectedAreaInAcres ?area. }\n" +
         "    optional { ?hazard kwgl-ont:numberOfDeaths ?deaths. }\n" +
@@ -33,7 +36,8 @@ function getRandomHazards() {
     var hazardQuery = "PREFIX kwgl-ont: <http://stko-kwg.geog.ucsb.edu/lod/lite-ontology/>\n" +
         "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n" +
         "PREFIX kwglr: <http://stko-kwg.geog.ucsb.edu/lod/lite-resource/>\n" +
-        "select ?hazard ?name ?fullentity ?type ?subtype ?start ?end (GROUP_CONCAT(?place ; separator=\"||\") AS ?places) ?area ?deaths ?infrastructuredamage ?cropdamage\n" +
+        "select ?hazard ?name ?fullentity ?type ?subtype ?start ?end (GROUP_CONCAT(?place ; separator=\"||\") AS ?places) " +
+        "(GROUP_CONCAT(?pName ; separator=\"||\") AS ?pNames) ?area ?deaths ?infrastructuredamage ?cropdamage\n" +
         "where { \n" +
         "    ?hazard a kwgl-ont:HazardEvent.\n" +
         "    ?hazard kwgl-ont:hasName ?name.\n" +
@@ -47,6 +51,8 @@ function getRandomHazards() {
         "    optional { ?hazard kwgl-ont:hasEndDate ?end. }\n" +
         "    optional {\n" +
         "        ?hazard kwgl-ont:hasImpacted ?place.\n" +
+        "        ?place kwgl-ont:hasName ?pName.\n" +
+        "        ?place kwgl-ont:hasKWGEntity ?pEntity.\n" +
         "    }\n" +
         "    optional { ?hazard kwgl-ont:affectedAreaInAcres ?area. }\n" +
         "    optional { ?hazard kwgl-ont:numberOfDeaths ?deaths. }\n" +
@@ -100,7 +106,8 @@ function drawHazardEntity(result) {
 
     $('.hazard-uri-js').attr("href", hazard['fullentity']['value']);
 
-    let iframeText = '<iframe src="https://robbie.dev.matrix.msu.edu/~anthon70/KWGpanels/hazard/embed/?hazard='
+    let baseURL = location.protocol + '//' + location.host + location.pathname;
+    let iframeText = '<iframe src="' + baseURL + 'embed/?hazard='
         + hazard['hazard']['value'].split('/').slice(-1)
         + '" title="' + hazard['name']['value'] + ' - KW Panel" style="height:'
         + $('.hazard-card-js').outerHeight()
@@ -112,9 +119,10 @@ function drawHazardEntity(result) {
     let placesHtml = "";
     if(hazard['places'] != null && hazard['places']['value'] != '') {
         let places = hazard['places']['value'].split('||');
+        let placeNames = hazard['pNames']['value'].split('||');
         for (var i = 0; i < places.length; i++) {
-            let relatedName = places[i].split('/').slice(-1)
-            placesHtml += '<div class="prototype-card"><h4>' + relatedName + '</h4><a href="../place/?place=' + relatedName + '" class="hidden"></a> </div>';
+            let relatedName = places[i].split('/').slice(-1);
+            placesHtml += '<div class="prototype-card"><h4>' + placeNames[i] + '</h4><a href="../place/?place=' + relatedName + '" class="hidden"></a> </div>';
         }
         $('.hazard-impacted-js').html(placesHtml);
     } else {
@@ -137,20 +145,42 @@ function drawBrowseHazards(result) {
 function getPlaceEntity(entityUri) {
     var placeQuery = "PREFIX kwgl-ont: <http://stko-kwg.geog.ucsb.edu/lod/lite-ontology/>\n" +
         "PREFIX kwglr: <http://stko-kwg.geog.ucsb.edu/lod/lite-resource/>\n" +
-        "select ?place ?name ?fullentity (GROUP_CONCAT(?within ; separator=\"||\") AS ?withins) " +
-        "(GROUP_CONCAT(?contain ; separator=\"||\") AS ?contains) (GROUP_CONCAT(?touch ; separator=\"||\") AS ?touches) " +
-        "(GROUP_CONCAT(?overlap ; separator=\"||\") AS ?overlaps) (GROUP_CONCAT(?hazard ; separator=\"||\") AS ?hazards) " +
+        "select ?place ?name ?fullentity (GROUP_CONCAT(?within ; separator=\"||\") AS ?withins) (GROUP_CONCAT(?wName ; separator=\"||\") AS ?wNames) " +
+        "(GROUP_CONCAT(?contain ; separator=\"||\") AS ?contains) (GROUP_CONCAT(?cName ; separator=\"||\") AS ?cNames) " +
+        "(GROUP_CONCAT(?touch ; separator=\"||\") AS ?touches) (GROUP_CONCAT(?tName ; separator=\"||\") AS ?tNames) " +
+        "(GROUP_CONCAT(?overlap ; separator=\"||\") AS ?overlaps) (GROUP_CONCAT(?oName ; separator=\"||\") AS ?oNames) " +
+        "(GROUP_CONCAT(?hazard ; separator=\"||\") AS ?hazards) (GROUP_CONCAT(?hName ; separator=\"||\") AS ?hNames) " +
         "?avgTemp ?maxTemp ?minTemp ?obese ?poverty ?diabetic ?population ?households " +
         "where { \n" +
         "    ?place a kwgl-ont:Place.\n" +
         "    FILTER (?place = kwglr:" + entityUri + ") \n" +
         "    ?place kwgl-ont:hasName ?name.\n" +
         "    ?place kwgl-ont:hasKWGEntity ?fullentity.\n" +
-        "    optional { ?place kwgl-ont:sfWithin ?within. }\n" +
-        "    optional { ?place kwgl-ont:sfContains ?contain. }\n" +
-        "    optional { ?place kwgl-ont:sfTouches ?touch. }\n" +
-        "    optional { ?place kwgl-ont:sfOverlaps ?overlap. }\n" +
-        "    optional { ?place kwgl-ont:impactedBy ?hazard. }\n" +
+        "    optional { " +
+        "        ?place kwgl-ont:sfWithin ?within. " +
+        "        ?within kwgl-ont:hasName ?wName.\n" +
+        "        ?within kwgl-ont:hasKWGEntity ?wEntity.\n" +
+        "    }\n" +
+        "    optional { " +
+        "        ?place kwgl-ont:sfContains ?contain. " +
+        "        ?contain kwgl-ont:hasName ?cName.\n" +
+        "        ?contain kwgl-ont:hasKWGEntity ?cEntity.\n" +
+        "    }\n" +
+        "    optional { " +
+        "        ?place kwgl-ont:sfTouches ?touch. " +
+        "        ?touch kwgl-ont:hasName ?tName.\n" +
+        "        ?touch kwgl-ont:hasKWGEntity ?tEntity.\n" +
+        "    }\n" +
+        "    optional { " +
+        "        ?place kwgl-ont:sfOverlaps ?overlap. " +
+        "        ?overlap kwgl-ont:hasName ?oName.\n" +
+        "        ?overlap kwgl-ont:hasKWGEntity ?oEntity.\n" +
+        "    }\n" +
+        "    optional { " +
+        "        ?place kwgl-ont:impactedBy ?hazard. " +
+        "        ?hazard kwgl-ont:hasName ?hName.\n" +
+        "        ?hazard kwgl-ont:hasKWGEntity ?hEntity.\n" +
+        "    }\n" +
         "    optional { ?place kwgl-ont:averageMonthlyTemperatureInCelcius ?avgTemp. }\n" +
         "    optional { ?place kwgl-ont:maximumMonthlyTemperatureInCelcius ?maxTemp. }\n" +
         "    optional { ?place kwgl-ont:minimumMonthlyTemperatureInCelcius ?minTemp. }\n" +
@@ -209,19 +239,41 @@ function getPlaceEntityYearData(entityUri) {
 function getRandomPlaces() {
     var placeQuery = "PREFIX kwgl-ont: <http://stko-kwg.geog.ucsb.edu/lod/lite-ontology/>\n" +
         "PREFIX kwglr: <http://stko-kwg.geog.ucsb.edu/lod/lite-resource/>\n" +
-        "select ?place ?name ?fullentity (GROUP_CONCAT(?within ; separator=\"||\") AS ?withins) " +
-        "(GROUP_CONCAT(?contain ; separator=\"||\") AS ?contains) (GROUP_CONCAT(?touch ; separator=\"||\") AS ?touches) " +
-        "(GROUP_CONCAT(?overlap ; separator=\"||\") AS ?overlaps) (GROUP_CONCAT(?hazard ; separator=\"||\") AS ?hazards) " +
+        "select ?place ?name ?fullentity (GROUP_CONCAT(?within ; separator=\"||\") AS ?withins) (GROUP_CONCAT(?wName ; separator=\"||\") AS ?wNames) " +
+        "(GROUP_CONCAT(?contain ; separator=\"||\") AS ?contains) (GROUP_CONCAT(?cName ; separator=\"||\") AS ?cNames) " +
+        "(GROUP_CONCAT(?touch ; separator=\"||\") AS ?touches) (GROUP_CONCAT(?tName ; separator=\"||\") AS ?tNames) " +
+        "(GROUP_CONCAT(?overlap ; separator=\"||\") AS ?overlaps) (GROUP_CONCAT(?oName ; separator=\"||\") AS ?oNames) " +
+        "(GROUP_CONCAT(?hazard ; separator=\"||\") AS ?hazards) (GROUP_CONCAT(?hName ; separator=\"||\") AS ?hNames) " +
         "?avgTemp ?maxTemp ?minTemp ?obese ?poverty ?diabetic ?population ?households " +
         "where { \n" +
         "    ?place a kwgl-ont:Place.\n" +
         "    ?place kwgl-ont:hasName ?name.\n" +
         "    ?place kwgl-ont:hasKWGEntity ?fullentity.\n" +
-        "    optional { ?place kwgl-ont:sfWithin ?within. }\n" +
-        "    optional { ?place kwgl-ont:sfContains ?contain. }\n" +
-        "    optional { ?place kwgl-ont:sfTouches ?touch. }\n" +
-        "    optional { ?place kwgl-ont:sfOverlaps ?overlap. }\n" +
-        "    optional { ?place kwgl-ont:impactedBy ?hazard. }\n" +
+        "    optional { " +
+        "        ?place kwgl-ont:sfWithin ?within. " +
+        "        ?within kwgl-ont:hasName ?wName.\n" +
+        "        ?within kwgl-ont:hasKWGEntity ?wEntity.\n" +
+        "    }\n" +
+        "    optional { " +
+        "        ?place kwgl-ont:sfContains ?contain. " +
+        "        ?contain kwgl-ont:hasName ?cName.\n" +
+        "        ?contain kwgl-ont:hasKWGEntity ?cEntity.\n" +
+        "    }\n" +
+        "    optional { " +
+        "        ?place kwgl-ont:sfTouches ?touch. " +
+        "        ?touch kwgl-ont:hasName ?tName.\n" +
+        "        ?touch kwgl-ont:hasKWGEntity ?tEntity.\n" +
+        "    }\n" +
+        "    optional { " +
+        "        ?place kwgl-ont:sfOverlaps ?overlap. " +
+        "        ?overlap kwgl-ont:hasName ?oName.\n" +
+        "        ?overlap kwgl-ont:hasKWGEntity ?oEntity.\n" +
+        "    }\n" +
+        "    optional { " +
+        "        ?place kwgl-ont:impactedBy ?hazard. " +
+        "        ?hazard kwgl-ont:hasName ?hName.\n" +
+        "        ?hazard kwgl-ont:hasKWGEntity ?hEntity.\n" +
+        "    }\n" +
         "    optional { ?place kwgl-ont:averageMonthlyTemperatureInCelcius ?avgTemp. }\n" +
         "    optional { ?place kwgl-ont:maximumMonthlyTemperatureInCelcius ?maxTemp. }\n" +
         "    optional { ?place kwgl-ont:minimumMonthlyTemperatureInCelcius ?minTemp. }\n" +
@@ -261,7 +313,8 @@ function drawPlaceEntity(result) {
 
     $('.place-uri-js').attr("href", place['fullentity']['value']);
 
-    let iframeText = '<iframe src="https://robbie.dev.matrix.msu.edu/~anthon70/KWGpanels/place/embed/?place='
+    let baseURL = location.protocol + '//' + location.host + location.pathname;
+    let iframeText = '<iframe src="' + baseURL + 'embed/?place='
         + place['place']['value'].split('/').slice(-1)
         + '" title="' + place['name']['value'] + ' - KW Panel" style="height:'
         + $('.place-card-js').outerHeight()
@@ -273,9 +326,10 @@ function drawPlaceEntity(result) {
     let withinHtml = "";
     if(place['withins'] != null && place['withins']['value'] != '') {
         let withins = place['withins']['value'].split('||');
+        let withinNames = place['wNames']['value'].split('||');
         for (var i = 0; i < withins.length; i++) {
             let relatedName = withins[i].split('/').slice(-1)
-            withinHtml += '<div class="prototype-card"><h4>' + relatedName + '</h4><a href="../place/?place=' + relatedName + '" class="hidden"></a> </div>';
+            withinHtml += '<div class="prototype-card"><h4>' + withinNames[i] + '</h4><a href="../place/?place=' + relatedName + '" class="hidden"></a> </div>';
         }
         $('.place-within-js').html(withinHtml);
     } else {
@@ -286,9 +340,10 @@ function drawPlaceEntity(result) {
     let containsHtml = "";
     if(place['contains'] != null && place['contains']['value'] != '') {
         let contains = place['contains']['value'].split('||');
+        let containNames = place['cNames']['value'].split('||');
         for (var i = 0; i < contains.length; i++) {
             let relatedName = contains[i].split('/').slice(-1)
-            containsHtml += '<div class="prototype-card"><h4>' + relatedName + '</h4><a href="../place/?place=' + relatedName + '" class="hidden"></a> </div>';
+            containsHtml += '<div class="prototype-card"><h4>' + containNames[i] + '</h4><a href="../place/?place=' + relatedName + '" class="hidden"></a> </div>';
         }
         $('.place-surround-js').html(containsHtml);
     } else {
@@ -300,16 +355,18 @@ function drawPlaceEntity(result) {
     if((place['touches'] != null && place['touches']['value'] != '') || (place['overlaps'] != null && place['overlaps']['value'] != '')) {
         if(place['touches'] != null && place['touches']['value'] != '') {
             let touches = place['touches']['value'].split('||');
+            let touchNames = place['tNames']['value'].split('||');
             for (var i = 0; i < touches.length; i++) {
                 let relatedName = touches[i].split('/').slice(-1)
-                surroundHtml += '<div class="prototype-card"><h4>' + relatedName + '</h4><a href="../place/?place=' + relatedName + '" class="hidden"></a> </div>';
+                surroundHtml += '<div class="prototype-card"><h4>' + touchNames[i] + '</h4><a href="../place/?place=' + relatedName + '" class="hidden"></a> </div>';
             }
         }
         if(place['overlaps'] != null && place['overlaps']['value'] != '') {
             let overlaps = place['overlaps']['value'].split('||');
+            let overlapNames = place['oNames']['value'].split('||');
             for (var i = 0; i < overlaps.length; i++) {
                 let relatedName = overlaps[i].split('/').slice(-1)
-                surroundHtml += '<div class="prototype-card"><h4>' + relatedName + '</h4><a href="../place/?place=' + relatedName + '" class="hidden"></a> </div>';
+                surroundHtml += '<div class="prototype-card"><h4>' + overlapNames[i] + '</h4><a href="../place/?place=' + relatedName + '" class="hidden"></a> </div>';
             }
         }
         $('.place-nearby-js').html(surroundHtml);
@@ -321,9 +378,10 @@ function drawPlaceEntity(result) {
     let hazardsHtml = "";
     if(place['hazards'] != null && place['hazards']['value'] != '') {
         let hazards = place['hazards']['value'].split('||');
+        let hazardNames = hazard['hNames']['value'].split('||');
         for (var i = 0; i < hazards.length; i++) {
             let relatedName = hazards[i].split('/').slice(-1)
-            hazardsHtml += '<div class="prototype-card"><h4>' + relatedName + '</h4><a href="../hazard/?hazard=' + relatedName + '" class="hidden"></a> </div>';
+            hazardsHtml += '<div class="prototype-card"><h4>' + hazardNames[i] + '</h4><a href="../hazard/?hazard=' + relatedName + '" class="hidden"></a> </div>';
         }
         $('.place-hazard-js').html(hazardsHtml);
     } else {

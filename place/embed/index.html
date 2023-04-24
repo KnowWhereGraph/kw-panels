@@ -52,5 +52,6 @@
 	let search_params = pageUrl.searchParams;
 	if(search_params.get('place') != null) {
 		getPlaceEntity(search_params.get('place'));
+		getPlaceEntityYearData(search_params.get('place'));
 	}
 </script>
