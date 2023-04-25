@@ -217,6 +217,16 @@ function getPlaceEntityYearData(entityUri) {
         "?floodCost18 ?floodCost19 ?floodCost20 ?floodCost21 ?floodCost22\n" +
         "?landslideCost18 ?landslideCost19 ?landslideCost20 ?landslideCost21 ?landslideCost22\n" +
         "?debrisCost18 ?debrisCost19 ?debrisCost20 ?debrisCost21 ?debrisCost22\n" +
+        "?avgTempJan21 ?avgTempFeb21 ?avgTempMar21 ?avgTempApr21 ?avgTempMay21 ?avgTempJun21\n" +
+        "?avgTempJul21 ?avgTempAug21 ?avgTempSep21 ?avgTempOct21 ?avgTempNov21 ?avgTempDec21\n" +
+        "?maxTempJan21 ?maxTempFeb21 ?maxTempMar21 ?maxTempApr21 ?maxTempMay21 ?maxTempJun21\n" +
+        "?maxTempJul21 ?maxTempAug21 ?maxTempSep21 ?maxTempOct21 ?maxTempNov21 ?maxTempDec21\n" +
+        "?minTempJan21 ?minTempFeb21 ?minTempMar21 ?minTempApr21 ?minTempMay21 ?minTempJun21\n" +
+        "?minTempJul21 ?minTempAug21 ?minTempSep21 ?minTempOct21 ?minTempNov21 ?minTempDec21\n" +
+        "?avgHeatDaysJan21 ?avgHeatDaysFeb21 ?avgHeatDaysMar21 ?avgHeatDaysApr21 ?avgHeatDaysMay21 ?avgHeatDaysJun21\n" +
+        "?avgHeatDaysJul21 ?avgHeatDaysAug21 ?avgHeatDaysSep21 ?avgHeatDaysOct21 ?avgHeatDaysNov21 ?avgHeatDaysDec21\n" +
+        "?avgCoolDaysJan21 ?avgCoolDaysFeb21 ?avgCoolDaysMar21 ?avgCoolDaysApr21 ?avgCoolDaysMay21 ?avgCoolDaysJun21\n" +
+        "?avgCoolDaysJul21 ?avgCoolDaysAug21 ?avgCoolDaysSep21 ?avgCoolDaysOct21 ?avgCoolDaysNov21 ?avgCoolDaysDec21\n" +
         "where { \n" +
         "    ?place a kwgl-ont:Place.\n" +
         "    FILTER (?place = kwglr:" + entityUri + ") \n" +
@@ -318,6 +328,71 @@ function getPlaceEntityYearData(entityUri) {
         "    optional { ?place kwgl-ont:dollarDamageOfDebrisFlowEventsImpactingPlace2020 ?debrisCost20. }\n" +
         "    optional { ?place kwgl-ont:dollarDamageOfDebrisFlowEventsImpactingPlace2021 ?debrisCost21. }\n" +
         "    optional { ?place kwgl-ont:dollarDamageOfDebrisFlowEventsImpactingPlace2022 ?debrisCost22. }\n" +
+        "    \n" +
+        "    optional { ?place kwgl-ont:averageMonthlyTemperatureInCelsiusJan2021 ?avgTempJan21. }\n" +
+        "    optional { ?place kwgl-ont:averageMonthlyTemperatureInCelsiusFeb2021 ?avgTempFeb21. }\n" +
+        "    optional { ?place kwgl-ont:averageMonthlyTemperatureInCelsiusMar2021 ?avgTempMar21. }\n" +
+        "    optional { ?place kwgl-ont:averageMonthlyTemperatureInCelsiusApr2021 ?avgTempApr21. }\n" +
+        "    optional { ?place kwgl-ont:averageMonthlyTemperatureInCelsiusMay2021 ?avgTempMay21. }\n" +
+        "    optional { ?place kwgl-ont:averageMonthlyTemperatureInCelsiusJun2021 ?avgTempJun21. }\n" +
+        "    optional { ?place kwgl-ont:averageMonthlyTemperatureInCelsiusJul2021 ?avgTempJul21. }\n" +
+        "    optional { ?place kwgl-ont:averageMonthlyTemperatureInCelsiusAug2021 ?avgTempAug21. }\n" +
+        "    optional { ?place kwgl-ont:averageMonthlyTemperatureInCelsiusSep2021 ?avgTempSep21. }\n" +
+        "    optional { ?place kwgl-ont:averageMonthlyTemperatureInCelsiusOct2021 ?avgTempOct21. }\n" +
+        "    optional { ?place kwgl-ont:averageMonthlyTemperatureInCelsiusNov2021 ?avgTempNov21. }\n" +
+        "    optional { ?place kwgl-ont:averageMonthlyTemperatureInCelsiusDec2021 ?avgTempDec21. }\n" +
+        "    \n" +
+        "    optional { ?place kwgl-ont:maxMonthlyTemperatureInCelciusJan2021 ?maxTempJan21. }\n" +
+        "    optional { ?place kwgl-ont:maxMonthlyTemperatureInCelciusFeb2021 ?maxTempFeb21. }\n" +
+        "    optional { ?place kwgl-ont:maxMonthlyTemperatureInCelciusMar2021 ?maxTempMar21. }\n" +
+        "    optional { ?place kwgl-ont:maxMonthlyTemperatureInCelciusApr2021 ?maxTempApr21. }\n" +
+        "    optional { ?place kwgl-ont:maxMonthlyTemperatureInCelciusMay2021 ?maxTempMay21. }\n" +
+        "    optional { ?place kwgl-ont:maxMonthlyTemperatureInCelciusJun2021 ?maxTempJun21. }\n" +
+        "    optional { ?place kwgl-ont:maxMonthlyTemperatureInCelciusJul2021 ?maxTempJul21. }\n" +
+        "    optional { ?place kwgl-ont:maxMonthlyTemperatureInCelciusAug2021 ?maxTempAug21. }\n" +
+        "    optional { ?place kwgl-ont:maxMonthlyTemperatureInCelciusSep2021 ?maxTempSep21. }\n" +
+        "    optional { ?place kwgl-ont:maxMonthlyTemperatureInCelciusOct2021 ?maxTempOct21. }\n" +
+        "    optional { ?place kwgl-ont:maxMonthlyTemperatureInCelciusNov2021 ?maxTempNov21. }\n" +
+        "    optional { ?place kwgl-ont:maxMonthlyTemperatureInCelciusDec2021 ?maxTempDec21. }\n" +
+        "    \n" +
+        "    optional { ?place kwgl-ont:minMonthlyTemperatureInCelciusJan2021 ?minTempJan21. }\n" +
+        "    optional { ?place kwgl-ont:minMonthlyTemperatureInCelciusFeb2021 ?minTempFeb21. }\n" +
+        "    optional { ?place kwgl-ont:minMonthlyTemperatureInCelciusMar2021 ?minTempMar21. }\n" +
+        "    optional { ?place kwgl-ont:minMonthlyTemperatureInCelciusApr2021 ?minTempApr21. }\n" +
+        "    optional { ?place kwgl-ont:minMonthlyTemperatureInCelciusMay2021 ?minTempMay21. }\n" +
+        "    optional { ?place kwgl-ont:minMonthlyTemperatureInCelciusJun2021 ?minTempJun21. }\n" +
+        "    optional { ?place kwgl-ont:minMonthlyTemperatureInCelciusJul2021 ?minTempJul21. }\n" +
+        "    optional { ?place kwgl-ont:minMonthlyTemperatureInCelciusAug2021 ?minTempAug21. }\n" +
+        "    optional { ?place kwgl-ont:minMonthlyTemperatureInCelciusSep2021 ?minTempSep21. }\n" +
+        "    optional { ?place kwgl-ont:minMonthlyTemperatureInCelciusOct2021 ?minTempOct21. }\n" +
+        "    optional { ?place kwgl-ont:minMonthlyTemperatureInCelciusNov2021 ?minTempNov21. }\n" +
+        "    optional { ?place kwgl-ont:minMonthlyTemperatureInCelciusDec2021 ?minTempDec21. }\n" +
+        "    \n" +
+        "    optional { ?place kwgl-ont:averageHeatingDegreeDaysPerMonthJan2021 ?avgHeatDaysJan21. }\n" +
+        "    optional { ?place kwgl-ont:averageHeatingDegreeDaysPerMonthFeb2021 ?avgHeatDaysFeb21. }\n" +
+        "    optional { ?place kwgl-ont:averageHeatingDegreeDaysPerMonthMar2021 ?avgHeatDaysMar21. }\n" +
+        "    optional { ?place kwgl-ont:averageHeatingDegreeDaysPerMonthApr2021 ?avgHeatDaysApr21. }\n" +
+        "    optional { ?place kwgl-ont:averageHeatingDegreeDaysPerMonthMay2021 ?avgHeatDaysMay21. }\n" +
+        "    optional { ?place kwgl-ont:averageHeatingDegreeDaysPerMonthJun2021 ?avgHeatDaysJun21. }\n" +
+        "    optional { ?place kwgl-ont:averageHeatingDegreeDaysPerMonthJul2021 ?avgHeatDaysJul21. }\n" +
+        "    optional { ?place kwgl-ont:averageHeatingDegreeDaysPerMonthAug2021 ?avgHeatDaysAug21. }\n" +
+        "    optional { ?place kwgl-ont:averageHeatingDegreeDaysPerMonthSep2021 ?avgHeatDaysSep21. }\n" +
+        "    optional { ?place kwgl-ont:averageHeatingDegreeDaysPerMonthOct2021 ?avgHeatDaysOct21. }\n" +
+        "    optional { ?place kwgl-ont:averageHeatingDegreeDaysPerMonthNov2021 ?avgHeatDaysNov21. }\n" +
+        "    optional { ?place kwgl-ont:averageHeatingDegreeDaysPerMonthDec2021 ?avgHeatDaysDec21. }\n" +
+        "    \n" +
+        "    optional { ?place kwgl-ont:averageCoolingDegreeDaysPerMonthJan2021 ?avgCoolDaysJan21. }\n" +
+        "    optional { ?place kwgl-ont:averageCoolingDegreeDaysPerMonthFeb2021 ?avgCoolDaysFeb21. }\n" +
+        "    optional { ?place kwgl-ont:averageCoolingDegreeDaysPerMonthMar2021 ?avgCoolDaysMar21. }\n" +
+        "    optional { ?place kwgl-ont:averageCoolingDegreeDaysPerMonthApr2021 ?avgCoolDaysApr21. }\n" +
+        "    optional { ?place kwgl-ont:averageCoolingDegreeDaysPerMonthMay2021 ?avgCoolDaysMay21. }\n" +
+        "    optional { ?place kwgl-ont:averageCoolingDegreeDaysPerMonthJun2021 ?avgCoolDaysJun21. }\n" +
+        "    optional { ?place kwgl-ont:averageCoolingDegreeDaysPerMonthJul2021 ?avgCoolDaysJul21. }\n" +
+        "    optional { ?place kwgl-ont:averageCoolingDegreeDaysPerMonthAug2021 ?avgCoolDaysAug21. }\n" +
+        "    optional { ?place kwgl-ont:averageCoolingDegreeDaysPerMonthSep2021 ?avgCoolDaysSep21. }\n" +
+        "    optional { ?place kwgl-ont:averageCoolingDegreeDaysPerMonthOct2021 ?avgCoolDaysOct21. }\n" +
+        "    optional { ?place kwgl-ont:averageCoolingDegreeDaysPerMonthNov2021 ?avgCoolDaysNov21. }\n" +
+        "    optional { ?place kwgl-ont:averageCoolingDegreeDaysPerMonthDec2021 ?avgCoolDaysDec21. }\n" +
         "}";
 
     submitQuery(placeYearQuery, "drawPlaceEntityYearData");
@@ -480,32 +555,79 @@ function drawPlaceEntity(result) {
 function drawPlaceEntityYearData(result) {
     console.log(result);
     var yearData = result[0];
-    let labels = ["Hazard Type","'18 #","'18 $","'19 #","'19 $","'20 #","'20 $","'21 #","'21 $","'22 #","'22 $"];
+
+    let hazardLabels = ["Hazard Data (2018-2022)","'18 #","'18 $","'19 #","'19 $","'20 #","'20 $","'21 #","'21 $","'22 #","'22 $"];
     let hazards = ['fire','hurricane','earthquake','tornado','surge','flood','landslide','debris'];
     let hazardFormatted = ['Fires','Hurricanes','Earthquakes','Tornadoes','Storm Surges','Floods','Landslides','Debris Flow Events'];
     let years = ['18','19','20','21','22'];
 
     let hazardTable = document.createElement('table');
+    let hasHazardData = false;
 
-    let labelRow = hazardTable.insertRow();
-    for(let l=0; l<labels.length; l++) {
-        labelRow.insertCell().textContent = labels[l];
+    let hazardLabelRow = hazardTable.insertRow();
+    for(let l=0; l<hazardLabels.length; l++) {
+        hazardLabelRow.insertCell().textContent = hazardLabels[l];
     }
 
     for(let h=0; h<hazards.length; h++) {
         let hazardRow = hazardTable.insertRow();
+        let hasHazardRowData = false;
         hazardRow.insertCell().textContent = hazardFormatted[h];
 
         for(let y=0; y<years.length; y++) {
             let cntIndex = hazards[h] + 'Cnt' + years[y];
+            let hazardCnt = yearData[cntIndex] != null ? yearData[cntIndex]['value'] : '';
             let costIndex = hazards[h] + 'Cost' + years[y];
+            let hazardCost = yearData[costIndex] != null ? dollarFormatter.format(yearData[costIndex]['value']) : '';
 
-            hazardRow.insertCell().textContent =yearData[cntIndex] != null ? yearData[cntIndex]['value'] : '';
-            hazardRow.insertCell().textContent =yearData[costIndex] != null ? dollarFormatter.format(yearData[costIndex]['value']) : '';
+            if(hazardCnt!= '' | hazardCost!='')
+                hasHazardData = hasHazardRowData = true;
+
+            hazardRow.insertCell().textContent = hazardCnt;
+            hazardRow.insertCell().textContent = hazardCost;
         }
+
+        if(!hasHazardRowData)
+            hazardRow.remove();
     }
 
-    document.getElementsByClassName("place-card-js")[0].appendChild(hazardTable);
+    if(hasHazardData)
+        document.getElementsByClassName("place-card-js")[0].appendChild(hazardTable);
+
+    let tempLabels = ["Temperature Data (2021)", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    let temps = ['avgTemp','maxTemp','minTemp','avgHeatDays','avgCoolDays'];
+    let tempFormatted = ['Average Temp','Max Temp','Min Temp','Average Heating Days','Average Cooling Days'];
+    let months = ["Jan21", "Feb21", "Mar21", "Apr21", "May21", "Jun21", "Jul21", "Aug21", "Sep21", "Oct21", "Nov21", "Dec21"];
+
+    let tempTable = document.createElement('table');
+    let hasTempData = false;
+
+    let tempLabelRow = tempTable.insertRow();
+    for(let l=0; l<tempLabels.length; l++) {
+        tempLabelRow.insertCell().textContent = tempLabels[l];
+    }
+
+    for(let t=0; t<temps.length; t++) {
+        let tempRow = tempTable.insertRow();
+        let hasTempRowData = false;
+        tempRow.insertCell().textContent = tempFormatted[t];
+
+        for(let m=0; m<months.length; m++) {
+            let tempIndex = temps[t] + months[m];
+            let tempVal = yearData[tempIndex] != null ? yearData[tempIndex]['value'] : '';
+
+            if(tempVal!= '')
+                hasTempData = hasTempRowData = true;
+
+            tempRow.insertCell().textContent = tempVal;
+        }
+
+        if(!hasTempRowData)
+            tempRow.remove();
+    }
+
+    if(hasTempData)
+        document.getElementsByClassName("place-card-js")[0].appendChild(tempTable);
 }
 
 function drawBrowsePlaces(result) {
