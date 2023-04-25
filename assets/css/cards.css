@@ -88,6 +88,23 @@
   width: 100%;
 }
 
+.prototype-full table {
+  margin: 20px 0 35px;
+  width: 100%;
+}
+
+.prototype-full table tbody tr:first-child {
+  font-weight: bold;
+}
+
+.prototype-full table tbody tr td {
+  border:1px solid var(--grey-light);
+}
+
+.prototype-full table tbody tr td:not(:first-child) {
+  text-align: center;
+}
+
 .prototype-card:hover {
   transform: scale(1.02,1.02);
 }

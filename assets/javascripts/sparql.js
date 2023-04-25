@@ -1,5 +1,12 @@
 var kwPanelUrl = "https://staging.knowwheregraph.org/graphdb/repositories/KWG-Lite";
 
+//Use this to format financial values
+const dollarFormatter = new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    minimumFractionDigits: 2
+});
+
 function getHazardEntity(entityUri) {
     var hazardQuery = "PREFIX kwgl-ont: <http://stko-kwg.geog.ucsb.edu/lod/lite-ontology/>\n" +
         "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n" +
@@ -92,9 +99,9 @@ function drawHazardEntity(result) {
     if(hazard['deaths'] != null)
         propertyString += "<span><b>Death toll:</b> " + hazard['deaths']['value'] + "</span>";
     if(hazard['infrastructuredamage'] != null)
-        propertyString += "<span><b>Loss of Infrastructure:</b> $" + hazard['infrastructuredamage']['value'] + "</span>";
+        propertyString += "<span><b>Loss of Infrastructure:</b> " + dollarFormatter.format(hazard['infrastructuredamage']['value']) + "</span>";
     if(hazard['cropdamage'] != null)
-        propertyString += "<span><b>Loss of Crops:</b> $" + hazard['cropdamage']['value'] + "</span>";
+        propertyString += "<span><b>Loss of Crops:</b> " + dollarFormatter.format(hazard['cropdamage']['value']) + "</span>";
     if(propertyString != "")
         hazardHtml += "<p>" + propertyString + "</p>";
 
@@ -193,11 +200,23 @@ function getPlaceEntity(entityUri) {
 function getPlaceEntityYearData(entityUri) {
     var placeYearQuery = "PREFIX kwgl-ont: <http://stko-kwg.geog.ucsb.edu/lod/lite-ontology/>\n" +
         "PREFIX kwglr: <http://stko-kwg.geog.ucsb.edu/lod/lite-resource/>\n" +
-        "select ?place ?name ?fullentity \n" +
+        "select \n" +
         "?fireCnt18 ?fireCnt19 ?fireCnt20 ?fireCnt21 ?fireCnt22 \n" +
+        "?hurricaneCnt18 ?hurricaneCnt19 ?hurricaneCnt20 ?hurricaneCnt21 ?hurricaneCnt22 \n" +
+        "?earthquakeCnt18 ?earthquakeCnt19 ?earthquakeCnt20 ?earthquakeCnt21 ?earthquakeCnt22 \n" +
         "?tornadoCnt18 ?tornadoCnt19 ?tornadoCnt20 ?tornadoCnt21 ?tornadoCnt22 \n" +
+        "?surgeCnt18 ?surgeCnt19 ?surgeCnt20 ?surgeCnt21 ?surgeCnt22 \n" +
         "?floodCnt18 ?floodCnt19 ?floodCnt20 ?floodCnt21 ?floodCnt22\n" +
+        "?landslideCnt18 ?landslideCnt19 ?landslideCnt20 ?landslideCnt21 ?landslideCnt22\n" +
         "?debrisCnt18 ?debrisCnt19 ?debrisCnt20 ?debrisCnt21 ?debrisCnt22\n" +
+        "?fireCost18 ?fireCost19 ?fireCost20 ?fireCost21 ?fireCost22 \n" +
+        "?hurricaneCost18 ?hurricaneCost19 ?hurricaneCost20 ?hurricaneCost21 ?hurricaneCost22 \n" +
+        "?earthquakeCost18 ?earthquakeCost19 ?earthquakeCost20 ?earthquakeCost21 ?earthquakeCost22 \n" +
+        "?tornadoCost18 ?tornadoCost19 ?tornadoCost20 ?tornadoCost21 ?tornadoCost22 \n" +
+        "?surgeCost18 ?surgeCost19 ?surgeCost20 ?surgeCost21 ?surgeCost22 \n" +
+        "?floodCost18 ?floodCost19 ?floodCost20 ?floodCost21 ?floodCost22\n" +
+        "?landslideCost18 ?landslideCost19 ?landslideCost20 ?landslideCost21 ?landslideCost22\n" +
+        "?debrisCost18 ?debrisCost19 ?debrisCost20 ?debrisCost21 ?debrisCost22\n" +
         "where { \n" +
         "    ?place a kwgl-ont:Place.\n" +
         "    FILTER (?place = kwglr:" + entityUri + ") \n" +
@@ -210,11 +229,29 @@ function getPlaceEntityYearData(entityUri) {
         "    optional { ?place kwgl-ont:numberOfFiresImpactingPlace2021 ?fireCnt21. }\n" +
         "    optional { ?place kwgl-ont:numberOfFiresImpactingPlace2022 ?fireCnt22. }\n" +
         "    \n" +
+        "    optional { ?place kwgl-ont:numberOfHurricanesImpactingPlace2018 ?hurricaneCnt18. }\n" +
+        "    optional { ?place kwgl-ont:numberOfHurricanesImpactingPlace2019 ?hurricaneCnt19. }\n" +
+        "    optional { ?place kwgl-ont:numberOfHurricanesImpactingPlace2020 ?hurricaneCnt20. }\n" +
+        "    optional { ?place kwgl-ont:numberOfHurricanesImpactingPlace2021 ?hurricaneCnt21. }\n" +
+        "    optional { ?place kwgl-ont:numberOfHurricanesImpactingPlace2022 ?hurricaneCnt22. }\n" +
+        "    \n" +
+        "    optional { ?place kwgl-ont:numberOfEarthquakesImpactingPlace2018 ?earthquakeCnt18. }\n" +
+        "    optional { ?place kwgl-ont:numberOfEarthquakesImpactingPlace2019 ?earthquakeCnt19. }\n" +
+        "    optional { ?place kwgl-ont:numberOfEarthquakesImpactingPlace2020 ?earthquakeCnt20. }\n" +
+        "    optional { ?place kwgl-ont:numberOfEarthquakesImpactingPlace2021 ?earthquakeCnt21. }\n" +
+        "    optional { ?place kwgl-ont:numberOfEarthquakesImpactingPlace2022 ?earthquakeCnt22. }\n" +
+        "    \n" +
         "    optional { ?place kwgl-ont:numberOfTornadoesImpactingPlace2018 ?tornadoCnt18. }\n" +
         "    optional { ?place kwgl-ont:numberOfTornadoesImpactingPlace2019 ?tornadoCnt19. }\n" +
         "    optional { ?place kwgl-ont:numberOfTornadoesImpactingPlace2020 ?tornadoCnt20. }\n" +
         "    optional { ?place kwgl-ont:numberOfTornadoesImpactingPlace2021 ?tornadoCnt21. }\n" +
         "    optional { ?place kwgl-ont:numberOfTornadoesImpactingPlace2022 ?tornadoCnt22. }\n" +
+        "    \n" +
+        "    optional { ?place kwgl-ont:numberOfStormSurgesImpactingPlace2018 ?surgeCnt18. }\n" +
+        "    optional { ?place kwgl-ont:numberOfStormSurgesImpactingPlace2019 ?surgeCnt19. }\n" +
+        "    optional { ?place kwgl-ont:numberOfStormSurgesImpactingPlace2020 ?surgeCnt20. }\n" +
+        "    optional { ?place kwgl-ont:numberOfStormSurgesImpactingPlace2021 ?surgeCnt21. }\n" +
+        "    optional { ?place kwgl-ont:numberOfStormSurgesImpactingPlace2022 ?surgeCnt22. }\n" +
         "    \n" +
         "    optional { ?place kwgl-ont:numberOfFloodsImpactingPlace2018 ?floodCnt18. }\n" +
         "    optional { ?place kwgl-ont:numberOfFloodsImpactingPlace2019 ?floodCnt19. }\n" +
@@ -222,11 +259,65 @@ function getPlaceEntityYearData(entityUri) {
         "    optional { ?place kwgl-ont:numberOfFloodsImpactingPlace2021 ?floodCnt21. }\n" +
         "    optional { ?place kwgl-ont:numberOfFloodsImpactingPlace2022 ?floodCnt22. }\n" +
         "    \n" +
+        "    optional { ?place kwgl-ont:numberOfLandslidesImpactingPlace2018 ?landslideCnt18. }\n" +
+        "    optional { ?place kwgl-ont:numberOfLandslidesImpactingPlace2019 ?landslideCnt19. }\n" +
+        "    optional { ?place kwgl-ont:numberOfLandslidesImpactingPlace2020 ?landslideCnt20. }\n" +
+        "    optional { ?place kwgl-ont:numberOfLandslidesImpactingPlace2021 ?landslideCnt21. }\n" +
+        "    optional { ?place kwgl-ont:numberOfLandslidesImpactingPlace2022 ?landslideCnt22. }\n" +
+        "    \n" +
         "    optional { ?place kwgl-ont:numberOfDebrisFlowEventsImpactingPlace2018 ?debrisCnt18. }\n" +
         "    optional { ?place kwgl-ont:numberOfDebrisFlowEventsImpactingPlace2019 ?debrisCnt19. }\n" +
         "    optional { ?place kwgl-ont:numberOfDebrisFlowEventsImpactingPlace2020 ?debrisCnt20. }\n" +
         "    optional { ?place kwgl-ont:numberOfDebrisFlowEventsImpactingPlace2021 ?debrisCnt21. }\n" +
         "    optional { ?place kwgl-ont:numberOfDebrisFlowEventsImpactingPlace2022 ?debrisCnt22. }\n" +
+        "    \n" +
+        "    optional { ?place kwgl-ont:dollarDamageOfFiresImpactingPlace2018 ?fireCost18. }\n" +
+        "    optional { ?place kwgl-ont:dollarDamageOfFiresImpactingPlace2019 ?fireCost19. }\n" +
+        "    optional { ?place kwgl-ont:dollarDamageOfFiresImpactingPlace2020 ?fireCost20. }\n" +
+        "    optional { ?place kwgl-ont:dollarDamageOfFiresImpactingPlace2021 ?fireCost21. }\n" +
+        "    optional { ?place kwgl-ont:dollarDamageOfFiresImpactingPlace2022 ?fireCost22. }\n" +
+        "    \n" +
+        "    optional { ?place kwgl-ont:dollarDamageOfHurricanesImpactingPlace2018 ?hurricaneCost18. }\n" +
+        "    optional { ?place kwgl-ont:dollarDamageOfHurricanesImpactingPlace2019 ?hurricaneCost19. }\n" +
+        "    optional { ?place kwgl-ont:dollarDamageOfHurricanesImpactingPlace2020 ?hurricaneCost20. }\n" +
+        "    optional { ?place kwgl-ont:dollarDamageOfHurricanesImpactingPlace2021 ?hurricaneCost21. }\n" +
+        "    optional { ?place kwgl-ont:dollarDamageOfHurricanesImpactingPlace2022 ?hurricaneCost22. }\n" +
+        "    \n" +
+        "    optional { ?place kwgl-ont:dollarDamageOfEarthquakesImpactingPlace2018 ?earthquakeCost18. }\n" +
+        "    optional { ?place kwgl-ont:dollarDamageOfEarthquakesImpactingPlace2019 ?earthquakeCost19. }\n" +
+        "    optional { ?place kwgl-ont:dollarDamageOfEarthquakesImpactingPlace2020 ?earthquakeCost20. }\n" +
+        "    optional { ?place kwgl-ont:dollarDamageOfEarthquakesImpactingPlace2021 ?earthquakeCost21. }\n" +
+        "    optional { ?place kwgl-ont:dollarDamageOfEarthquakesImpactingPlace2022 ?earthquakeCost22. }\n" +
+        "    \n" +
+        "    optional { ?place kwgl-ont:dollarDamageOfTornadoesImpactingPlace2018 ?tornadoCost18. }\n" +
+        "    optional { ?place kwgl-ont:dollarDamageOfTornadoesImpactingPlace2019 ?tornadoCost19. }\n" +
+        "    optional { ?place kwgl-ont:dollarDamageOfTornadoesImpactingPlace2020 ?tornadoCost20. }\n" +
+        "    optional { ?place kwgl-ont:dollarDamageOfTornadoesImpactingPlace2021 ?tornadoCost21. }\n" +
+        "    optional { ?place kwgl-ont:dollarDamageOfTornadoesImpactingPlace2022 ?tornadoCost22. }\n" +
+        "    \n" +
+        "    optional { ?place kwgl-ont:dollarDamageOfStormSurgesImpactingPlace2018 ?surgeCost18. }\n" +
+        "    optional { ?place kwgl-ont:dollarDamageOfStormSurgesImpactingPlace2019 ?surgeCost19. }\n" +
+        "    optional { ?place kwgl-ont:dollarDamageOfStormSurgesImpactingPlace2020 ?surgeCost20. }\n" +
+        "    optional { ?place kwgl-ont:dollarDamageOfStormSurgesImpactingPlace2021 ?surgeCost21. }\n" +
+        "    optional { ?place kwgl-ont:dollarDamageOfStormSurgesImpactingPlace2022 ?surgeCost22. }\n" +
+        "    \n" +
+        "    optional { ?place kwgl-ont:dollarDamageOfFloodsImpactingPlace2018 ?floodCost18. }\n" +
+        "    optional { ?place kwgl-ont:dollarDamageOfFloodsImpactingPlace2019 ?floodCost19. }\n" +
+        "    optional { ?place kwgl-ont:dollarDamageOfFloodsImpactingPlace2020 ?floodCost20. }\n" +
+        "    optional { ?place kwgl-ont:dollarDamageOfFloodsImpactingPlace2021 ?floodCost21. }\n" +
+        "    optional { ?place kwgl-ont:dollarDamageOfFloodsImpactingPlace2022 ?floodCost22. }\n" +
+        "    \n" +
+        "    optional { ?place kwgl-ont:dollarDamageOfLandslidesImpactingPlace2018 ?landslideCost18. }\n" +
+        "    optional { ?place kwgl-ont:dollarDamageOfLandslidesImpactingPlace2019 ?landslideCost19. }\n" +
+        "    optional { ?place kwgl-ont:dollarDamageOfLandslidesImpactingPlace2020 ?landslideCost20. }\n" +
+        "    optional { ?place kwgl-ont:dollarDamageOfLandslidesImpactingPlace2021 ?landslideCost21. }\n" +
+        "    optional { ?place kwgl-ont:dollarDamageOfLandslidesImpactingPlace2022 ?landslideCost22. }\n" +
+        "    \n" +
+        "    optional { ?place kwgl-ont:dollarDamageOfDebrisFlowEventsImpactingPlace2018 ?debrisCost18. }\n" +
+        "    optional { ?place kwgl-ont:dollarDamageOfDebrisFlowEventsImpactingPlace2019 ?debrisCost19. }\n" +
+        "    optional { ?place kwgl-ont:dollarDamageOfDebrisFlowEventsImpactingPlace2020 ?debrisCost20. }\n" +
+        "    optional { ?place kwgl-ont:dollarDamageOfDebrisFlowEventsImpactingPlace2021 ?debrisCost21. }\n" +
+        "    optional { ?place kwgl-ont:dollarDamageOfDebrisFlowEventsImpactingPlace2022 ?debrisCost22. }\n" +
         "}";
 
     submitQuery(placeYearQuery, "drawPlaceEntityYearData");
@@ -388,6 +479,33 @@ function drawPlaceEntity(result) {
 
 function drawPlaceEntityYearData(result) {
     console.log(result);
+    var yearData = result[0];
+    let labels = ["Hazard Type","'18 #","'18 $","'19 #","'19 $","'20 #","'20 $","'21 #","'21 $","'22 #","'22 $"];
+    let hazards = ['fire','hurricane','earthquake','tornado','surge','flood','landslide','debris'];
+    let hazardFormatted = ['Fires','Hurricanes','Earthquakes','Tornadoes','Storm Surges','Floods','Landslides','Debris Flow Events'];
+    let years = ['18','19','20','21','22'];
+
+    let hazardTable = document.createElement('table');
+
+    let labelRow = hazardTable.insertRow();
+    for(let l=0; l<labels.length; l++) {
+        labelRow.insertCell().textContent = labels[l];
+    }
+
+    for(let h=0; h<hazards.length; h++) {
+        let hazardRow = hazardTable.insertRow();
+        hazardRow.insertCell().textContent = hazardFormatted[h];
+
+        for(let y=0; y<years.length; y++) {
+            let cntIndex = hazards[h] + 'Cnt' + years[y];
+            let costIndex = hazards[h] + 'Cost' + years[y];
+
+            hazardRow.insertCell().textContent =yearData[cntIndex] != null ? yearData[cntIndex]['value'] : '';
+            hazardRow.insertCell().textContent =yearData[costIndex] != null ? dollarFormatter.format(yearData[costIndex]['value']) : '';
+        }
+    }
+
+    document.getElementsByClassName("place-card-js")[0].appendChild(hazardTable);
 }
 
 function drawBrowsePlaces(result) {
