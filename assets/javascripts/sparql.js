@@ -18,10 +18,8 @@ function getHazardEntity(entityUri) {
         "    FILTER (?hazard = kwglr:" + entityUri + ") \n" +
         "    ?hazard kwgl-ont:hasName ?name.\n" +
         "    ?hazard kwgl-ont:hasKWGEntity ?fullentity.\n" +
-        "    optional { \n" +
-        "        ?hazard rdf:type ?type.\n" +
-        "        FILTER(?type != kwgl-ont:HazardEvent) . \n" +
-        "    }\n" +
+        "    ?hazard rdf:type ?type.\n" +
+        "    FILTER(?type != kwgl-ont:HazardEvent) . \n" +
         "    optional { ?hazard kwgl-ont:isOfFireType ?subtype. }\n" +
         "    optional { ?hazard kwgl-ont:hasStartDate ?start. }\n" +
         "    optional { ?hazard kwgl-ont:hasEndDate ?end. }\n" +
@@ -43,29 +41,15 @@ function getRandomHazards() {
     var hazardQuery = "PREFIX kwgl-ont: <http://stko-kwg.geog.ucsb.edu/lod/lite-ontology/>\n" +
         "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n" +
         "PREFIX kwglr: <http://stko-kwg.geog.ucsb.edu/lod/lite-resource/>\n" +
-        "select ?hazard ?name ?fullentity ?type ?subtype ?start ?end (GROUP_CONCAT(?place ; separator=\"||\") AS ?places) " +
-        "(GROUP_CONCAT(?pName ; separator=\"||\") AS ?pNames) ?area ?deaths ?infrastructuredamage ?cropdamage\n" +
+        "select ?hazard ?name ?fullentity ?type ?subtype\n" +
         "where { \n" +
         "    ?hazard a kwgl-ont:HazardEvent.\n" +
         "    ?hazard kwgl-ont:hasName ?name.\n" +
         "    ?hazard kwgl-ont:hasKWGEntity ?fullentity.\n" +
-        "    optional { \n" +
-        "        ?hazard rdf:type ?type.\n" +
-        "        FILTER(?type != kwgl-ont:HazardEvent) . \n" +
-        "    }\n" +
+        "    ?hazard rdf:type ?type.\n" +
+        "    FILTER(?type != kwgl-ont:HazardEvent) . \n" +
         "    optional { ?hazard kwgl-ont:isOfFireType ?subtype. }\n" +
-        "    optional { ?hazard kwgl-ont:hasStartDate ?start. }\n" +
-        "    optional { ?hazard kwgl-ont:hasEndDate ?end. }\n" +
-        "    optional {\n" +
-        "        ?hazard kwgl-ont:hasImpacted ?place.\n" +
-        "        ?place kwgl-ont:hasName ?pName.\n" +
-        "        ?place kwgl-ont:hasKWGEntity ?pEntity.\n" +
-        "    }\n" +
-        "    optional { ?hazard kwgl-ont:affectedAreaInAcres ?area. }\n" +
-        "    optional { ?hazard kwgl-ont:numberOfDeaths ?deaths. }\n" +
-        "    optional { ?hazard kwgl-ont:damageToInfrastructureInDollars ?infrastructuredamage. }\n" +
-        "    optional { ?hazard kwgl-ont:damageToCropsInDollars ?cropdamage. }\n" +
-        "} GROUP BY ?hazard ?name ?fullentity ?type ?subtype ?start ?end ?area ?deaths ?infrastructuredamage ?cropdamage ORDER BY RAND() LIMIT 10";
+        "} ORDER BY RAND() LIMIT 10";
 
     submitQuery(hazardQuery, "drawBrowseHazards");
 }
@@ -78,12 +62,12 @@ function drawHazardEntity(result) {
 
     let cardHeader = hazard['name']['value'];
 
-    if(hazard['subtype'] != null)
-        cardHeader += " (" + hazard['subtype']['value'].split('/').slice(-1) + ")";
-    else if(hazard['type'] != null)
-        cardHeader += " (" + hazard['type']['value'].split('/').slice(-1) + ")";
-
     let hazardHtml = "<h2>" + cardHeader + "</h2>";
+
+    if(hazard['subtype'] != null)
+        hazardHtml += "<h4>" + hazard['subtype']['value'].split('/').slice(-1) + "</h4>";
+    else if(hazard['type'] != null)
+        hazardHtml += "<h4>" + hazard['type']['value'].split('/').slice(-1) + "</h4>";
 
     let propertyString = "";
     if(hazard['start'] != null) {
@@ -139,16 +123,19 @@ function drawBrowseHazards(result) {
     let browseHtml = "";
     for (var i = 0; i < result.length; i++) {
         let entity = result[i];
-        let relatedName = entity['hazard']['value'].split('/').slice(-1)
-        browseHtml += '<div class="prototype-card"><h4>' + entity['name']['value'] + '</h4><a href="../hazard/?hazard=' + relatedName + '" class="hidden"></a> </div>';
+        let relatedName = entity['hazard']['value'].split('/').slice(-1);
+        let hazardType = (entity['subtype'] != null) ? entity['subtype']['value'].split('/').slice(-1) : entity['type']['value'].split('/').slice(-1);
+
+        browseHtml += '<div class="prototype-card"><h4>' + entity['name']['value'] + '</h4><a href="../hazard/?hazard=' + relatedName + '" class="hidden"></a><p>' + hazardType + '</p></div>';
     }
-    $('.featured-hazards-js').html(browseHtml);
+    $('.explore-hazards-js').html(browseHtml);
 }
 
 function getPlaceEntity(entityUri) {
     var placeQuery = "PREFIX kwgl-ont: <http://stko-kwg.geog.ucsb.edu/lod/lite-ontology/>\n" +
         "PREFIX kwglr: <http://stko-kwg.geog.ucsb.edu/lod/lite-resource/>\n" +
-        "select ?place ?name ?fullentity (GROUP_CONCAT(?within ; separator=\"||\") AS ?withins) (GROUP_CONCAT(?wName ; separator=\"||\") AS ?wNames) " +
+        "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\n" +
+        "select ?place ?name ?fullentity ?typeLabel (GROUP_CONCAT(?within ; separator=\"||\") AS ?withins) (GROUP_CONCAT(?wName ; separator=\"||\") AS ?wNames) " +
         "(GROUP_CONCAT(?contain ; separator=\"||\") AS ?contains) (GROUP_CONCAT(?cName ; separator=\"||\") AS ?cNames) " +
         "(GROUP_CONCAT(?touch ; separator=\"||\") AS ?touches) (GROUP_CONCAT(?tName ; separator=\"||\") AS ?tNames) " +
         "(GROUP_CONCAT(?overlap ; separator=\"||\") AS ?overlaps) (GROUP_CONCAT(?oName ; separator=\"||\") AS ?oNames) " +
@@ -159,6 +146,10 @@ function getPlaceEntity(entityUri) {
         "    FILTER (?place = kwglr:" + entityUri + ") \n" +
         "    ?place kwgl-ont:hasName ?name.\n" +
         "    ?place kwgl-ont:hasKWGEntity ?fullentity.\n" +
+        "    optional { " +
+        "        ?place kwgl-ont:hasPlaceType ?placeType. " +
+        "        ?placeType rdfs:label ?typeLabel.\n" +
+        "    }\n" +
         "    optional { " +
         "        ?place kwgl-ont:sfWithin ?within. " +
         "        ?within kwgl-ont:hasName ?wName.\n" +
@@ -192,7 +183,7 @@ function getPlaceEntity(entityUri) {
         "    optional { ?place kwgl-ont:percentDiabetic ?diabetic. }\n" +
         "    optional { ?place kwgl-ont:hasPopulation ?population. }\n" +
         "    optional { ?place kwgl-ont:hasNumberOfHouseHolds ?households. }\n" +
-        "} GROUP BY ?place ?name ?fullentity ?avgTemp ?maxTemp ?minTemp ?obese ?poverty ?diabetic ?population ?households";
+        "} GROUP BY ?place ?name ?fullentity ?typeLabel ?avgTemp ?maxTemp ?minTemp ?obese ?poverty ?diabetic ?population ?households";
 
     submitQuery(placeQuery, "drawPlaceEntity");
 }
@@ -401,50 +392,17 @@ function getPlaceEntityYearData(entityUri) {
 function getRandomPlaces() {
     var placeQuery = "PREFIX kwgl-ont: <http://stko-kwg.geog.ucsb.edu/lod/lite-ontology/>\n" +
         "PREFIX kwglr: <http://stko-kwg.geog.ucsb.edu/lod/lite-resource/>\n" +
-        "select ?place ?name ?fullentity (GROUP_CONCAT(?within ; separator=\"||\") AS ?withins) (GROUP_CONCAT(?wName ; separator=\"||\") AS ?wNames) " +
-        "(GROUP_CONCAT(?contain ; separator=\"||\") AS ?contains) (GROUP_CONCAT(?cName ; separator=\"||\") AS ?cNames) " +
-        "(GROUP_CONCAT(?touch ; separator=\"||\") AS ?touches) (GROUP_CONCAT(?tName ; separator=\"||\") AS ?tNames) " +
-        "(GROUP_CONCAT(?overlap ; separator=\"||\") AS ?overlaps) (GROUP_CONCAT(?oName ; separator=\"||\") AS ?oNames) " +
-        "(GROUP_CONCAT(?hazard ; separator=\"||\") AS ?hazards) (GROUP_CONCAT(?hName ; separator=\"||\") AS ?hNames) " +
-        "?avgTemp ?maxTemp ?minTemp ?obese ?poverty ?diabetic ?population ?households " +
+        "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\n" +
+        "select ?place ?name ?fullentity ?typeLabel " +
         "where { \n" +
         "    ?place a kwgl-ont:Place.\n" +
         "    ?place kwgl-ont:hasName ?name.\n" +
         "    ?place kwgl-ont:hasKWGEntity ?fullentity.\n" +
         "    optional { " +
-        "        ?place kwgl-ont:sfWithin ?within. " +
-        "        ?within kwgl-ont:hasName ?wName.\n" +
-        "        ?within kwgl-ont:hasKWGEntity ?wEntity.\n" +
+        "        ?place kwgl-ont:hasPlaceType ?placeType. " +
+        "        ?placeType rdfs:label ?typeLabel.\n" +
         "    }\n" +
-        "    optional { " +
-        "        ?place kwgl-ont:sfContains ?contain. " +
-        "        ?contain kwgl-ont:hasName ?cName.\n" +
-        "        ?contain kwgl-ont:hasKWGEntity ?cEntity.\n" +
-        "    }\n" +
-        "    optional { " +
-        "        ?place kwgl-ont:sfTouches ?touch. " +
-        "        ?touch kwgl-ont:hasName ?tName.\n" +
-        "        ?touch kwgl-ont:hasKWGEntity ?tEntity.\n" +
-        "    }\n" +
-        "    optional { " +
-        "        ?place kwgl-ont:sfOverlaps ?overlap. " +
-        "        ?overlap kwgl-ont:hasName ?oName.\n" +
-        "        ?overlap kwgl-ont:hasKWGEntity ?oEntity.\n" +
-        "    }\n" +
-        "    optional { " +
-        "        ?place kwgl-ont:impactedBy ?hazard. " +
-        "        ?hazard kwgl-ont:hasName ?hName.\n" +
-        "        ?hazard kwgl-ont:hasKWGEntity ?hEntity.\n" +
-        "    }\n" +
-        "    optional { ?place kwgl-ont:averageMonthlyTemperatureInCelcius ?avgTemp. }\n" +
-        "    optional { ?place kwgl-ont:maximumMonthlyTemperatureInCelcius ?maxTemp. }\n" +
-        "    optional { ?place kwgl-ont:minimumMonthlyTemperatureInCelcius ?minTemp. }\n" +
-        "    optional { ?place kwgl-ont:percentObese ?obese. }\n" +
-        "    optional { ?place kwgl-ont:percentBelowPovertyLine ?poverty. }\n" +
-        "    optional { ?place kwgl-ont:percentDiabetic ?diabetic. }\n" +
-        "    optional { ?place kwgl-ont:hasPopulation ?population. }\n" +
-        "    optional { ?place kwgl-ont:hasNumberOfHouseHolds ?households. }\n" +
-        "} GROUP BY ?place ?name ?fullentity ?avgTemp ?maxTemp ?minTemp ?obese ?poverty ?diabetic ?population ?households ORDER BY RAND() LIMIT 10";
+        "} ORDER BY RAND() LIMIT 10";
 
     submitQuery(placeQuery, "drawBrowsePlaces");
 }
@@ -456,6 +414,9 @@ function drawPlaceEntity(result) {
     $('.place-name-js').text(place['name']['value']);
 
     let placeHtml = "<h2>" + place['name']['value'] + "</h2>";
+
+    if(place['typeLabel'] != null)
+        placeHtml += "<h4><b>Type</b>: " + place['typeLabel']['value'] + "</h4>";
 
     let propertyString = "";
     if(place['population'] != null)
@@ -635,10 +596,13 @@ function drawBrowsePlaces(result) {
     let browseHtml = "";
     for (var i = 0; i < result.length; i++) {
         let entity = result[i];
-        let relatedName = entity['place']['value'].split('/').slice(-1)
-        browseHtml += '<div class="prototype-card"><h4>' + entity['name']['value'] + '</h4><a href="../place/?place=' + relatedName + '" class="hidden"></a> </div>';
+        let relatedName = entity['place']['value'].split('/').slice(-1);
+        let placeType = (entity['typeLabel'] != null) ? '<p>' + entity['typeLabel']['value'] + '</p>' : '';
+
+        browseHtml += '<div class="prototype-card"><h4>' + entity['name']['value'] +
+            '</h4><a href="../place/?place=' + relatedName + '" class="hidden"></a>' + placeType + '</div>';
     }
-    $('.featured-places-js').html(browseHtml);
+    $('.explore-places-js').html(browseHtml);
 }
 
 function getEntitiesForSearch() {
@@ -647,7 +611,7 @@ function getEntitiesForSearch() {
         "PREFIX kwglr: <http://stko-kwg.geog.ucsb.edu/lod/lite-resource/>\n" +
         "select distinct ?entity ?type ?name ?fullentity\n" +
         "where { \n" +
-        "\t?entity rdf:type ?type.\n" +
+        "    ?entity rdf:type ?type.\n" +
         "    FILTER(?type = kwgl-ont:HazardEvent || ?type =  kwgl-ont:Place)\n" +
         "    ?entity kwgl-ont:hasName ?name.\n" +
         "    ?entity kwgl-ont:hasKWGEntity ?fullentity.\n" +
@@ -669,7 +633,7 @@ function searchEntities(result) {
             keys: ['name.value']
         };
         const fuse = new Fuse(result, options);
-        const searchResults = fuse.search(searchTerm);
+        const searchResults = fuse.search("'"+searchTerm);
 
         console.log(searchResults);
         let searchHtml = '';
