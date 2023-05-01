@@ -64,9 +64,13 @@ function getPlaceEntity(entityUri) {
         "select ?place ?fullentity ?typeLabel ?name\n" +
         "?obese ?poverty ?diabetic ?population ?households \n" +
         "(GROUP_CONCAT(?within ; separator=\"|-|\") AS ?withins) (GROUP_CONCAT(?wName ; separator=\"|-|\") AS ?wNames) (GROUP_CONCAT(?wTypeLabel ; separator=\"|-|\") AS ?wTypeLabels)\n" +
+        "(GROUP_CONCAT(?rwithin ; separator=\"|-|\") AS ?rwithins) (GROUP_CONCAT(?rwName ; separator=\"|-|\") AS ?rwNames) (GROUP_CONCAT(?rwTypeLabel ; separator=\"|-|\") AS ?rwTypeLabels)\n" +
         "(GROUP_CONCAT(?contain ; separator=\"|-|\") AS ?contains) (GROUP_CONCAT(?cName ; separator=\"|-|\") AS ?cNames) (GROUP_CONCAT(?cTypeLabel ; separator=\"|-|\") AS ?cTypeLabels)\n" +
+        "(GROUP_CONCAT(?rcontain ; separator=\"|-|\") AS ?rcontains) (GROUP_CONCAT(?rcName ; separator=\"|-|\") AS ?rcNames) (GROUP_CONCAT(?rcTypeLabel ; separator=\"|-|\") AS ?rcTypeLabels)\n" +
         "(GROUP_CONCAT(?touch ; separator=\"|-|\") AS ?touches) (GROUP_CONCAT(?tName ; separator=\"|-|\") AS ?tNames) (GROUP_CONCAT(?tTypeLabel ; separator=\"|-|\") AS ?tTypeLabels)\n" +
+        "(GROUP_CONCAT(?rtouch ; separator=\"|-|\") AS ?rtouches) (GROUP_CONCAT(?rtName ; separator=\"|-|\") AS ?rtNames) (GROUP_CONCAT(?rtTypeLabel ; separator=\"|-|\") AS ?rtTypeLabels)\n" +
         "(GROUP_CONCAT(?overlap ; separator=\"|-|\") AS ?overlaps) (GROUP_CONCAT(?oName ; separator=\"|-|\") AS ?oNames) (GROUP_CONCAT(?oTypeLabel ; separator=\"|-|\") AS ?oTypeLabels)\n" +
+        "(GROUP_CONCAT(?roverlap ; separator=\"|-|\") AS ?roverlaps) (GROUP_CONCAT(?roName ; separator=\"|-|\") AS ?roNames) (GROUP_CONCAT(?roTypeLabel ; separator=\"|-|\") AS ?roTypeLabels)\n" +
         "(GROUP_CONCAT(?hazard ; separator=\"|-|\") AS ?hazards) (GROUP_CONCAT(?hName ; separator=\"|-|\") AS ?hNames)\n" +
         "where { \n" +
         "    ?place a kwgl-ont:Place.\n" +
@@ -89,12 +93,28 @@ function getPlaceEntity(entityUri) {
         "        ?wType rdfs:label ?wTypeLabel.\n" +
         "    }\n" +
         "    optional {\n" +
+        "        ?rwithin kwgl-ont:sfWithin ?place.\n" +
+        "        ?rwithin a kwgl-ont:Place.\n" +
+        "        optional { ?rwithin kwgl-ont:hasName ?rwName. }\n" +
+        "        ?rwithin kwgl-ont:hasKWGEntity ?rwEntity.\n" +
+        "        ?rwithin kwgl-ont:hasPlaceType ?rwType.\n" +
+        "        ?rwType rdfs:label ?rwTypeLabel.\n" +
+        "    }\n" +
+        "    optional {\n" +
         "        ?place kwgl-ont:sfContains ?contain.\n" +
         "        ?contain a kwgl-ont:Place.\n" +
         "        optional { ?contain kwgl-ont:hasName ?cName. }\n" +
         "        ?contain kwgl-ont:hasKWGEntity ?cEntity.\n" +
         "        ?contain kwgl-ont:hasPlaceType ?cType.\n" +
         "        ?cType rdfs:label ?cTypeLabel.\n" +
+        "    }\n" +
+        "    optional {\n" +
+        "        ?rcontain kwgl-ont:sfContains ?place.\n" +
+        "        ?rcontain a kwgl-ont:Place.\n" +
+        "        optional { ?rcontain kwgl-ont:hasName ?rcName. }\n" +
+        "        ?rcontain kwgl-ont:hasKWGEntity ?rcEntity.\n" +
+        "        ?rcontain kwgl-ont:hasPlaceType ?rcType.\n" +
+        "        ?rcType rdfs:label ?rcTypeLabel.\n" +
         "    }\n" +
         "    optional {\n" +
         "        ?place kwgl-ont:sfTouches ?touch.\n" +
@@ -105,12 +125,28 @@ function getPlaceEntity(entityUri) {
         "        ?tType rdfs:label ?tTypeLabel.\n" +
         "    }\n" +
         "    optional {\n" +
+        "        ?rtouch kwgl-ont:sfTouches ?place.\n" +
+        "        ?rtouch a kwgl-ont:Place.\n" +
+        "        optional { ?rtouch kwgl-ont:hasName ?rtName. }\n" +
+        "        ?rtouch kwgl-ont:hasKWGEntity ?rtEntity.\n" +
+        "        ?rtouch kwgl-ont:hasPlaceType ?rtType.\n" +
+        "        ?rtType rdfs:label ?rtTypeLabel.\n" +
+        "    }\n" +
+        "    optional {\n" +
         "        ?place kwgl-ont:sfOverlaps ?overlap.\n" +
         "        ?overlap a kwgl-ont:Place.\n" +
         "        optional { ?overlap kwgl-ont:hasName ?oName. }\n" +
         "        ?overlap kwgl-ont:hasKWGEntity ?oEntity.\n" +
         "        ?overlap kwgl-ont:hasPlaceType ?oType.\n" +
         "        ?oType rdfs:label ?oTypeLabel.\n" +
+        "    }\n" +
+        "    optional {\n" +
+        "        ?roverlap kwgl-ont:sfOverlaps ?place.\n" +
+        "        ?roverlap a kwgl-ont:Place.\n" +
+        "        optional { ?roverlap kwgl-ont:hasName ?roName. }\n" +
+        "        ?roverlap kwgl-ont:hasKWGEntity ?roEntity.\n" +
+        "        ?roverlap kwgl-ont:hasPlaceType ?roType.\n" +
+        "        ?roType rdfs:label ?roTypeLabel.\n" +
         "    }\n" +
         "    optional {\n" +
         "        ?place kwgl-ont:impactedBy ?hazard.\n" +
@@ -478,14 +514,28 @@ function drawPlaceEntity(result) {
     $('.place-iframe-js').val(iframeText);
 
     let withinHtml = "";
-    if(place['withins'] != null && place['withins']['value'] != '') {
-        let withins = place['withins']['value'].split('|-|');
-        let withinNames = place['wNames']['value'].split('|-|');
-        let withinTypeLabels = place['wTypeLabels']['value'].split('|-|');
-        for (let i = 0; i < withins.length; i++) {
-            let relatedName = withins[i].split('/').slice(-1);
-            let actualName = (withinNames[i]!="") ? withinNames[i] : relatedName;
-            withinHtml += '<div class="prototype-card"><h4>' + actualName + '</h4><a href="../place/?place=' + relatedName + '" class="hidden"></a><p>' + withinTypeLabels[i] + '</p></div>';
+    if(
+        (place['withins'] != null && place['withins']['value'] != '') || (place['rcontains'] != null && place['rcontains']['value'] != '')
+    ) {
+        if(place['withins'] != null && place['withins']['value'] != '') {
+            let withins = place['withins']['value'].split('|-|');
+            let withinNames = place['wNames']['value'].split('|-|');
+            let withinTypeLabels = place['wTypeLabels']['value'].split('|-|');
+            for (let i = 0; i < withins.length; i++) {
+                let relatedName = withins[i].split('/').slice(-1);
+                let actualName = (withinNames[i] != "") ? withinNames[i] : relatedName;
+                withinHtml += '<div class="prototype-card"><h4>' + actualName + '</h4><a href="../place/?place=' + relatedName + '" class="hidden"></a><p>' + withinTypeLabels[i] + '</p></div>';
+            }
+        }
+        if(place['rcontains'] != null && place['rcontains']['value'] != '') {
+            let rcontains = place['rcontains']['value'].split('|-|');
+            let rcontainNames = place['rcNames']['value'].split('|-|');
+            let rcontainTypeLabels = place['rcTypeLabels']['value'].split('|-|');
+            for (let i = 0; i < rcontains.length; i++) {
+                let relatedName = rcontains[i].split('/').slice(-1);
+                let actualName = (rcontainNames[i] != "") ? rcontainNames[i] : relatedName;
+                withinHtml += '<div class="prototype-card"><h4>' + actualName + '</h4><a href="../place/?place=' + relatedName + '" class="hidden"></a><p>' + rcontainTypeLabels[i] + '</p></div>';
+            }
         }
         $('.place-within-js').html(withinHtml);
     } else {
@@ -494,14 +544,28 @@ function drawPlaceEntity(result) {
     }
 
     let containsHtml = "";
-    if(place['contains'] != null && place['contains']['value'] != '') {
-        let contains = place['contains']['value'].split('|-|');
-        let containNames = place['cNames']['value'].split('|-|');
-        let containTypeLabels = place['cTypeLabels']['value'].split('|-|');
-        for (let i = 0; i < contains.length; i++) {
-            let relatedName = contains[i].split('/').slice(-1);
-            let actualName = (containNames[i]!="") ? containNames[i] : relatedName;
-            containsHtml += '<div class="prototype-card"><h4>' + actualName + '</h4><a href="../place/?place=' + relatedName + '" class="hidden"></a><p>' + containTypeLabels[i] + '</p></div>';
+    if(
+        (place['contains'] != null && place['contains']['value'] != '') || (place['rwithins'] != null && place['rwithins']['value'] != '')
+    ) {
+        if(place['contains'] != null && place['contains']['value'] != '') {
+            let contains = place['contains']['value'].split('|-|');
+            let containNames = place['cNames']['value'].split('|-|');
+            let containTypeLabels = place['cTypeLabels']['value'].split('|-|');
+            for (let i = 0; i < contains.length; i++) {
+                let relatedName = contains[i].split('/').slice(-1);
+                let actualName = (containNames[i] != "") ? containNames[i] : relatedName;
+                containsHtml += '<div class="prototype-card"><h4>' + actualName + '</h4><a href="../place/?place=' + relatedName + '" class="hidden"></a><p>' + containTypeLabels[i] + '</p></div>';
+            }
+        }
+        if(place['rwithins'] != null && place['rwithins']['value'] != '') {
+            let rwithins = place['rwithins']['value'].split('|-|');
+            let rwithinNames = place['rwNames']['value'].split('|-|');
+            let rwithinTypeLabels = place['rwTypeLabels']['value'].split('|-|');
+            for (let i = 0; i < rwithins.length; i++) {
+                let relatedName = rwithins[i].split('/').slice(-1);
+                let actualName = (rwithinNames[i]!="") ? rwithinNames[i] : relatedName;
+                containsHtml += '<div class="prototype-card"><h4>' + actualName + '</h4><a href="../place/?place=' + relatedName + '" class="hidden"></a><p>' + rwithinTypeLabels[i] + '</p></div>';
+            }
         }
         $('.place-surround-js').html(containsHtml);
     } else {
@@ -510,7 +574,10 @@ function drawPlaceEntity(result) {
     }
 
     let surroundHtml = "";
-    if((place['touches'] != null && place['touches']['value'] != '') || (place['overlaps'] != null && place['overlaps']['value'] != '')) {
+    if(
+        (place['touches'] != null && place['touches']['value'] != '') || (place['overlaps'] != null && place['overlaps']['value'] != '') ||
+        (place['rtouches'] != null && place['rtouches']['value'] != '') || (place['roverlaps'] != null && place['roverlaps']['value'] != '')
+    ) {
         if(place['touches'] != null && place['touches']['value'] != '') {
             let touches = place['touches']['value'].split('|-|');
             let touchNames = place['tNames']['value'].split('|-|');
@@ -521,6 +588,16 @@ function drawPlaceEntity(result) {
                 surroundHtml += '<div class="prototype-card"><h4>' + actualName + '</h4><a href="../place/?place=' + relatedName + '" class="hidden"></a><p>' + touchTypeLabels[i] + '</p></div>';
             }
         }
+        if(place['rtouches'] != null && place['rtouches']['value'] != '') {
+            let rtouches = place['rtouches']['value'].split('|-|');
+            let rtouchNames = place['rtNames']['value'].split('|-|');
+            let rtouchTypeLabels = place['rtTypeLabels']['value'].split('|-|');
+            for (let i = 0; i < rtouches.length; i++) {
+                let relatedName = rtouches[i].split('/').slice(-1);
+                let actualName = (rtouchNames[i]!="") ? rtouchNames[i] : relatedName;
+                surroundHtml += '<div class="prototype-card"><h4>' + actualName + '</h4><a href="../place/?place=' + relatedName + '" class="hidden"></a><p>' + rtouchTypeLabels[i] + '</p></div>';
+            }
+        }
         if(place['overlaps'] != null && place['overlaps']['value'] != '') {
             let overlaps = place['overlaps']['value'].split('|-|');
             let overlapNames = place['oNames']['value'].split('|-|');
@@ -529,6 +606,16 @@ function drawPlaceEntity(result) {
                 let relatedName = overlaps[i].split('/').slice(-1);
                 let actualName = (overlapNames[i]!="") ? overlapNames[i] : relatedName;
                 surroundHtml += '<div class="prototype-card"><h4>' + actualName + '</h4><a href="../place/?place=' + relatedName + '" class="hidden"></a><p>' + overlapTypeLabels[i] + '</p></div>';
+            }
+        }
+        if(place['roverlaps'] != null && place['roverlaps']['value'] != '') {
+            let roverlaps = place['roverlaps']['value'].split('|-|');
+            let roverlapNames = place['roNames']['value'].split('|-|');
+            let roverlapTypeLabels = place['roTypeLabels']['value'].split('|-|');
+            for (let i = 0; i < roverlaps.length; i++) {
+                let relatedName = roverlaps[i].split('/').slice(-1);
+                let actualName = (roverlapNames[i]!="") ? roverlapNames[i] : relatedName;
+                surroundHtml += '<div class="prototype-card"><h4>' + actualName + '</h4><a href="../place/?place=' + relatedName + '" class="hidden"></a><p>' + roverlapTypeLabels[i] + '</p></div>';
             }
         }
         $('.place-nearby-js').html(surroundHtml);
