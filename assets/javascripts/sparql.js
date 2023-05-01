@@ -12,7 +12,7 @@ function getHazardEntity(entityUri) {
         "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n" +
         "PREFIX kwglr: <http://stko-kwg.geog.ucsb.edu/lod/lite-resource/>\n" +
         "select ?hazard ?name ?fullentity (GROUP_CONCAT(?type ; separator=\"|-|\") AS ?types) ?subtype ?start ?end\n" +
-        "(GROUP_CONCAT(?place ; separator=\"|-|\") AS ?places) (GROUP_CONCAT(?pName ; separator=\"|-|\") AS ?pNames) \n" +
+        "(GROUP_CONCAT(?place ; separator=\"|-|\") AS ?places) (GROUP_CONCAT(?pName ; separator=\"|-|\") AS ?pNames) (GROUP_CONCAT(?pTypeLabel ; separator=\"|-|\") AS ?pTypeLabels)\n" +
         "?area ?deaths ?infrastructuredamage ?cropdamage\n" +
         "where { \n" +
         "    ?hazard a kwgl-ont:HazardEvent.\n" +
@@ -25,8 +25,11 @@ function getHazardEntity(entityUri) {
         "    optional { ?hazard kwgl-ont:hasEndDate ?end. }\n" +
         "    optional {\n" +
         "        ?hazard kwgl-ont:hasImpacted ?place.\n" +
-        "        ?place kwgl-ont:hasName ?pName.\n" +
+        "        ?place a kwgl-ont:Place.\n" +
+        "        optional { ?place kwgl-ont:hasName ?pName. }\n" +
         "        ?place kwgl-ont:hasKWGEntity ?pEntity.\n" +
+        "        ?place kwgl-ont:hasPlaceType ?pType.\n" +
+        "        ?placeType rdfs:label ?pTypeLabel.\n" +
         "    }\n" +
         "    optional { ?hazard kwgl-ont:affectedAreaInAcres ?area. }\n" +
         "    optional { ?hazard kwgl-ont:numberOfDeaths ?deaths. }\n" +
@@ -60,10 +63,10 @@ function getPlaceEntity(entityUri) {
         "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\n" +
         "select ?place ?fullentity ?typeLabel ?name \n" +
         "?obese ?poverty ?diabetic ?population ?households \n" +
-        "(GROUP_CONCAT(?within ; separator=\"|-|\") AS ?withins) (GROUP_CONCAT(?wName ; separator=\"|-|\") AS ?wNames) (GROUP_CONCAT(?wType ; separator=\"|-|\") AS ?wTypes) \n" +
-        "(GROUP_CONCAT(?contain ; separator=\"|-|\") AS ?contains) (GROUP_CONCAT(?cName ; separator=\"|-|\") AS ?cNames) (GROUP_CONCAT(?cType ; separator=\"|-|\") AS ?cTypes) \n" +
-        "(GROUP_CONCAT(?touch ; separator=\"|-|\") AS ?touches) (GROUP_CONCAT(?tName ; separator=\"|-|\") AS ?tNames) (GROUP_CONCAT(?tType ; separator=\"|-|\") AS ?tTypes) \n" +
-        "(GROUP_CONCAT(?overlap ; separator=\"|-|\") AS ?overlaps) (GROUP_CONCAT(?oName ; separator=\"|-|\") AS ?oNames) (GROUP_CONCAT(?oType ; separator=\"|-|\") AS ?oTypes) \n" +
+        "(GROUP_CONCAT(?within ; separator=\"|-|\") AS ?withins) (GROUP_CONCAT(?wName ; separator=\"|-|\") AS ?wNames) (GROUP_CONCAT(?wTypeLabel ; separator=\"|-|\") AS ?wTypeLabels) \n" +
+        "(GROUP_CONCAT(?contain ; separator=\"|-|\") AS ?contains) (GROUP_CONCAT(?cName ; separator=\"|-|\") AS ?cNames) (GROUP_CONCAT(?cTypeLabel ; separator=\"|-|\") AS ?cTypeLabels) \n" +
+        "(GROUP_CONCAT(?touch ; separator=\"|-|\") AS ?touches) (GROUP_CONCAT(?tName ; separator=\"|-|\") AS ?tNames) (GROUP_CONCAT(?tTypeLabel ; separator=\"|-|\") AS ?tTypeLabels) \n" +
+        "(GROUP_CONCAT(?overlap ; separator=\"|-|\") AS ?overlaps) (GROUP_CONCAT(?oName ; separator=\"|-|\") AS ?oNames) (GROUP_CONCAT(?oTypeLabel ; separator=\"|-|\") AS ?oTypeLabels) \n" +
         "(GROUP_CONCAT(?hazard ; separator=\"|-|\") AS ?hazards) (GROUP_CONCAT(?hName ; separator=\"|-|\") AS ?hNames)\n" +
         "where { \n" +
         "    ?place a kwgl-ont:Place.\n" +
@@ -79,30 +82,39 @@ function getPlaceEntity(entityUri) {
         "    optional { ?place kwgl-ont:hasNumberOfHouseHolds ?households. }\n" +
         "    optional {         \n" +
         "        ?place kwgl-ont:sfWithin ?within.         \n" +
+        "        ?within a kwgl-ont:Place.\n" +
         "        optional { ?within kwgl-ont:hasName ?wName. }\n" +
         "        ?within kwgl-ont:hasKWGEntity ?wEntity.\n" +
         "        ?within kwgl-ont:hasPlaceType ?wType.   \n" +
+        "        ?wType rdfs:label ?wTypeLabel.\n" +
         "    }\n" +
         "    optional {         \n" +
         "        ?place kwgl-ont:sfContains ?contain.         \n" +
+        "        ?contain a kwgl-ont:Place.\n" +
         "        optional { ?contain kwgl-ont:hasName ?cName. }\n" +
         "        ?contain kwgl-ont:hasKWGEntity ?cEntity.\n" +
         "        ?contain kwgl-ont:hasPlaceType ?cType.  \n" +
+        "        ?cType rdfs:label ?cTypeLabel.\n" +
         "    }\n" +
         "    optional {         \n" +
         "        ?place kwgl-ont:sfTouches ?touch.         \n" +
+        "        ?touch a kwgl-ont:Place.\n" +
         "        optional { ?touch kwgl-ont:hasName ?tName. }\n" +
         "        ?touch kwgl-ont:hasKWGEntity ?tEntity.\n" +
         "        ?touch kwgl-ont:hasPlaceType ?tType.  \n" +
+        "        ?tType rdfs:label ?tTypeLabel.\n" +
         "    }\n" +
         "    optional {         \n" +
         "        ?place kwgl-ont:sfOverlaps ?overlap.         \n" +
+        "        ?overlap a kwgl-ont:Place.\n" +
         "        optional { ?overlap kwgl-ont:hasName ?oName. }\n" +
         "        ?overlap kwgl-ont:hasKWGEntity ?oEntity.\n" +
         "        ?overlap kwgl-ont:hasPlaceType ?oType.  \n" +
+        "        ?oType rdfs:label ?oTypeLabel.\n" +
         "    }\n" +
         "    optional {         \n" +
         "        ?place kwgl-ont:impactedBy ?hazard.         \n" +
+        "        ?hazard a kwgl-ont:HazardEvent.\n" +
         "        ?hazard kwgl-ont:hasName ?hName.\n" +
         "        ?hazard kwgl-ont:hasKWGEntity ?hEntity.\n" +
         "    }\n" +
@@ -331,7 +343,7 @@ function getRandomPlaces() {
     submitQuery(placeQuery, "drawBrowsePlaces");
 }
 
-function drawHazardEntity(result) { //TODO
+function drawHazardEntity(result) {
     let hazard = result[0];
     console.log(hazard);
 
@@ -343,8 +355,8 @@ function drawHazardEntity(result) { //TODO
 
     if(hazard['subtype'] != null)
         hazardHtml += "<h4>" + hazard['subtype']['value'].split('/').slice(-1) + "</h4>";
-    else if(hazard['type'] != null)
-        hazardHtml += "<h4>" + hazard['type']['value'].split('/').slice(-1) + "</h4>";
+    else if(hazard['types'] != null)
+        hazardHtml += "<h4>" + extractHazardType(hazard['types']['value']) + "</h4>";
 
     let propertyString = "";
     if(hazard['start'] != null) {
@@ -382,11 +394,13 @@ function drawHazardEntity(result) { //TODO
 
     let placesHtml = "";
     if(hazard['places'] != null && hazard['places']['value'] != '') {
-        let places = hazard['places']['value'].split('||');
-        let placeNames = hazard['pNames']['value'].split('||');
-        for (var i = 0; i < places.length; i++) {
+        let places = hazard['places']['value'].split('|-|');
+        let placeNames = hazard['pNames']['value'].split('|-|');
+        let placeTypeLabels = hazard['pTypeLabels']['value'].split('|-|');
+        for (let i = 0; i < places.length; i++) {
             let relatedName = places[i].split('/').slice(-1);
-            placesHtml += '<div class="prototype-card"><h4>' + placeNames[i] + '</h4><a href="../place/?place=' + relatedName + '" class="hidden"></a> </div>';
+            let actualName = (placeNames[i]!="") ? placeNames[i] : relatedName;
+            placesHtml += '<div class="prototype-card"><h4>' + actualName + '</h4><a href="../place/?place=' + relatedName + '" class="hidden"></a><p>' + placeTypeLabels[i] + '</p></div>';
         }
         $('.hazard-impacted-js').html(placesHtml);
     } else {
@@ -423,13 +437,14 @@ function extractHazardType(types) {
     }
 }
 
-function drawPlaceEntity(result) { //TODO
+function drawPlaceEntity(result) {
     let place = result[0];
     console.log(place);
 
     $('.place-name-js').text(place['name']['value']);
 
-    let placeHtml = "<h2>" + place['name']['value'] + "</h2>";
+    let placeNameText = (place['name'] != null) ? place['name']['value'] : place['place']['value'].split('/').slice(-1);
+    let placeHtml = "<h2>" + placeNameText + "</h2>";
 
     if(place['typeLabel'] != null)
         placeHtml += "<h4>" + place['typeLabel']['value'] + "</h4>";
@@ -464,11 +479,13 @@ function drawPlaceEntity(result) { //TODO
 
     let withinHtml = "";
     if(place['withins'] != null && place['withins']['value'] != '') {
-        let withins = place['withins']['value'].split('||');
-        let withinNames = place['wNames']['value'].split('||');
-        for (var i = 0; i < withins.length; i++) {
-            let relatedName = withins[i].split('/').slice(-1)
-            withinHtml += '<div class="prototype-card"><h4>' + withinNames[i] + '</h4><a href="../place/?place=' + relatedName + '" class="hidden"></a> </div>';
+        let withins = place['withins']['value'].split('|-|');
+        let withinNames = place['wNames']['value'].split('|-|');
+        let withinTypeLabels = place['wTypeLabels']['value'].split('|-|');
+        for (let i = 0; i < withins.length; i++) {
+            let relatedName = withins[i].split('/').slice(-1);
+            let actualName = (withinNames[i]!="") ? withinNames[i] : relatedName;
+            withinHtml += '<div class="prototype-card"><h4>' + actualName + '</h4><a href="../place/?place=' + relatedName + '" class="hidden"></a><p>' + withinTypeLabels[i] + '</p></div>';
         }
         $('.place-within-js').html(withinHtml);
     } else {
@@ -478,11 +495,13 @@ function drawPlaceEntity(result) { //TODO
 
     let containsHtml = "";
     if(place['contains'] != null && place['contains']['value'] != '') {
-        let contains = place['contains']['value'].split('||');
-        let containNames = place['cNames']['value'].split('||');
-        for (var i = 0; i < contains.length; i++) {
-            let relatedName = contains[i].split('/').slice(-1)
-            containsHtml += '<div class="prototype-card"><h4>' + containNames[i] + '</h4><a href="../place/?place=' + relatedName + '" class="hidden"></a> </div>';
+        let contains = place['contains']['value'].split('|-|');
+        let containNames = place['cNames']['value'].split('|-|');
+        let containTypeLabels = place['cTypeLabels']['value'].split('|-|');
+        for (let i = 0; i < contains.length; i++) {
+            let relatedName = contains[i].split('/').slice(-1);
+            let actualName = (containNames[i]!="") ? containNames[i] : relatedName;
+            containsHtml += '<div class="prototype-card"><h4>' + actualName + '</h4><a href="../place/?place=' + relatedName + '" class="hidden"></a><p>' + containTypeLabels[i] + '</p></div>';
         }
         $('.place-surround-js').html(containsHtml);
     } else {
@@ -493,19 +512,23 @@ function drawPlaceEntity(result) { //TODO
     let surroundHtml = "";
     if((place['touches'] != null && place['touches']['value'] != '') || (place['overlaps'] != null && place['overlaps']['value'] != '')) {
         if(place['touches'] != null && place['touches']['value'] != '') {
-            let touches = place['touches']['value'].split('||');
-            let touchNames = place['tNames']['value'].split('||');
-            for (var i = 0; i < touches.length; i++) {
-                let relatedName = touches[i].split('/').slice(-1)
-                surroundHtml += '<div class="prototype-card"><h4>' + touchNames[i] + '</h4><a href="../place/?place=' + relatedName + '" class="hidden"></a> </div>';
+            let touches = place['touches']['value'].split('|-|');
+            let touchNames = place['tNames']['value'].split('|-|');
+            let touchTypeLabels = place['tTypeLabels']['value'].split('|-|');
+            for (let i = 0; i < touches.length; i++) {
+                let relatedName = touches[i].split('/').slice(-1);
+                let actualName = (touchNames[i]!="") ? touchNames[i] : relatedName;
+                surroundHtml += '<div class="prototype-card"><h4>' + actualName + '</h4><a href="../place/?place=' + relatedName + '" class="hidden"></a><p>' + touchTypeLabels[i] + '</p></div>';
             }
         }
         if(place['overlaps'] != null && place['overlaps']['value'] != '') {
-            let overlaps = place['overlaps']['value'].split('||');
-            let overlapNames = place['oNames']['value'].split('||');
-            for (var i = 0; i < overlaps.length; i++) {
-                let relatedName = overlaps[i].split('/').slice(-1)
-                surroundHtml += '<div class="prototype-card"><h4>' + overlapNames[i] + '</h4><a href="../place/?place=' + relatedName + '" class="hidden"></a> </div>';
+            let overlaps = place['overlaps']['value'].split('|-|');
+            let overlapNames = place['oNames']['value'].split('|-|');
+            let overlapTypeLabels = place['oTypeLabels']['value'].split('|-|');
+            for (let i = 0; i < overlaps.length; i++) {
+                let relatedName = overlaps[i].split('/').slice(-1);
+                let actualName = (overlapNames[i]!="") ? overlapNames[i] : relatedName;
+                surroundHtml += '<div class="prototype-card"><h4>' + actualName + '</h4><a href="../place/?place=' + relatedName + '" class="hidden"></a><p>' + overlapTypeLabels[i] + '</p></div>';
             }
         }
         $('.place-nearby-js').html(surroundHtml);
@@ -516,10 +539,10 @@ function drawPlaceEntity(result) { //TODO
 
     let hazardsHtml = "";
     if(place['hazards'] != null && place['hazards']['value'] != '') {
-        let hazards = place['hazards']['value'].split('||');
-        let hazardNames = hazard['hNames']['value'].split('||');
-        for (var i = 0; i < hazards.length; i++) {
-            let relatedName = hazards[i].split('/').slice(-1)
+        let hazards = place['hazards']['value'].split('|-|');
+        let hazardNames = hazard['hNames']['value'].split('|-|');
+        for (let i = 0; i < hazards.length; i++) {
+            let relatedName = hazards[i].split('/').slice(-1);
             hazardsHtml += '<div class="prototype-card"><h4>' + hazardNames[i] + '</h4><a href="../hazard/?hazard=' + relatedName + '" class="hidden"></a> </div>';
         }
         $('.place-hazard-js').html(hazardsHtml);
@@ -529,7 +552,7 @@ function drawPlaceEntity(result) { //TODO
     }
 }
 
-function drawPlaceEntityYearData(result) { //TODO
+function drawPlaceEntityYearData(result) {
     console.log(result);
     var yearData = result[0];
 
@@ -671,7 +694,7 @@ function searchEntities(result) { //TODO
     }
 }
 
-function submitQuery(query, callBackFunction) { //TODO
+function submitQuery(query, callBackFunction) {
     $.ajax({
         url: kwPanelUrl,
         headers: {
