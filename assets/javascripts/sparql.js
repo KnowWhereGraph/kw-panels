@@ -14,12 +14,12 @@ function getHazardEntity(entityUri) {
         "select ?hazard ?name ?fullentity (GROUP_CONCAT(?type ; separator=\"|-|\") AS ?types) ?subtype ?start ?end\n" +
         "(GROUP_CONCAT(?place ; separator=\"|-|\") AS ?places) (GROUP_CONCAT(?pName ; separator=\"|-|\") AS ?pNames) (GROUP_CONCAT(?pTypeLabel ; separator=\"|-|\") AS ?pTypeLabels)\n" +
         "?area ?deaths ?infrastructuredamage ?cropdamage\n" +
-        "where { \n" +
+        "where {\n" +
         "    ?hazard a kwgl-ont:HazardEvent.\n" +
-        "    FILTER (?hazard = kwglr:" + entityUri + ") \n" +
+        "    FILTER (?hazard = kwglr:" + entityUri + ")\n" +
         "    ?hazard kwgl-ont:hasName ?name.\n" +
         "    ?hazard kwgl-ont:hasKWGEntity ?fullentity.\n" +
-        "    ?hazard rdf:type ?type. \n" +
+        "    ?hazard rdf:type ?type.\n" +
         "    optional { ?hazard kwgl-ont:isOfFireType ?subtype. }\n" +
         "    optional { ?hazard kwgl-ont:hasStartDate ?start. }\n" +
         "    optional { ?hazard kwgl-ont:hasEndDate ?end. }\n" +
@@ -45,11 +45,11 @@ function getRandomHazards() {
         "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n" +
         "PREFIX kwglr: <http://stko-kwg.geog.ucsb.edu/lod/lite-resource/>\n" +
         "select ?hazard ?name ?fullentity (GROUP_CONCAT(?type ; separator=\"|-|\") AS ?types) ?subtype\n" +
-        "where { \n" +
+        "where {\n" +
         "    ?hazard a kwgl-ont:HazardEvent.\n" +
         "    ?hazard kwgl-ont:hasName ?name.\n" +
         "    ?hazard kwgl-ont:hasKWGEntity ?fullentity.\n" +
-        "    ?hazard rdf:type ?type. \n" +
+        "    ?hazard rdf:type ?type.\n" +
         "    optional { ?hazard kwgl-ont:isOfFireType ?subtype. }\n" +
         "    BIND(SHA512(CONCAT(STR(RAND()), STR(?hazard))) AS ?random)\n" +
         "} GROUP BY ?hazard ?name ?fullentity ?subtype ?random ORDER BY ?random LIMIT 10";
@@ -61,18 +61,18 @@ function getPlaceEntity(entityUri) {
     var placeQuery = "PREFIX kwgl-ont: <http://stko-kwg.geog.ucsb.edu/lod/lite-ontology/>\n" +
         "PREFIX kwglr: <http://stko-kwg.geog.ucsb.edu/lod/lite-resource/>\n" +
         "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\n" +
-        "select ?place ?fullentity ?typeLabel ?name \n" +
+        "select ?place ?fullentity ?typeLabel ?name\n" +
         "?obese ?poverty ?diabetic ?population ?households \n" +
-        "(GROUP_CONCAT(?within ; separator=\"|-|\") AS ?withins) (GROUP_CONCAT(?wName ; separator=\"|-|\") AS ?wNames) (GROUP_CONCAT(?wTypeLabel ; separator=\"|-|\") AS ?wTypeLabels) \n" +
-        "(GROUP_CONCAT(?contain ; separator=\"|-|\") AS ?contains) (GROUP_CONCAT(?cName ; separator=\"|-|\") AS ?cNames) (GROUP_CONCAT(?cTypeLabel ; separator=\"|-|\") AS ?cTypeLabels) \n" +
-        "(GROUP_CONCAT(?touch ; separator=\"|-|\") AS ?touches) (GROUP_CONCAT(?tName ; separator=\"|-|\") AS ?tNames) (GROUP_CONCAT(?tTypeLabel ; separator=\"|-|\") AS ?tTypeLabels) \n" +
-        "(GROUP_CONCAT(?overlap ; separator=\"|-|\") AS ?overlaps) (GROUP_CONCAT(?oName ; separator=\"|-|\") AS ?oNames) (GROUP_CONCAT(?oTypeLabel ; separator=\"|-|\") AS ?oTypeLabels) \n" +
+        "(GROUP_CONCAT(?within ; separator=\"|-|\") AS ?withins) (GROUP_CONCAT(?wName ; separator=\"|-|\") AS ?wNames) (GROUP_CONCAT(?wTypeLabel ; separator=\"|-|\") AS ?wTypeLabels)\n" +
+        "(GROUP_CONCAT(?contain ; separator=\"|-|\") AS ?contains) (GROUP_CONCAT(?cName ; separator=\"|-|\") AS ?cNames) (GROUP_CONCAT(?cTypeLabel ; separator=\"|-|\") AS ?cTypeLabels)\n" +
+        "(GROUP_CONCAT(?touch ; separator=\"|-|\") AS ?touches) (GROUP_CONCAT(?tName ; separator=\"|-|\") AS ?tNames) (GROUP_CONCAT(?tTypeLabel ; separator=\"|-|\") AS ?tTypeLabels)\n" +
+        "(GROUP_CONCAT(?overlap ; separator=\"|-|\") AS ?overlaps) (GROUP_CONCAT(?oName ; separator=\"|-|\") AS ?oNames) (GROUP_CONCAT(?oTypeLabel ; separator=\"|-|\") AS ?oTypeLabels)\n" +
         "(GROUP_CONCAT(?hazard ; separator=\"|-|\") AS ?hazards) (GROUP_CONCAT(?hName ; separator=\"|-|\") AS ?hNames)\n" +
         "where { \n" +
         "    ?place a kwgl-ont:Place.\n" +
         "    FILTER (?place = kwglr:" + entityUri + ") \n" +
         "    ?place kwgl-ont:hasKWGEntity ?fullentity.\n" +
-        "    ?place kwgl-ont:hasPlaceType ?placeType.         \n" +
+        "    ?place kwgl-ont:hasPlaceType ?placeType.\n" +
         "    ?placeType rdfs:label ?typeLabel.\n" +
         "    optional { ?place kwgl-ont:hasName ?name. }\n" +
         "    optional { ?place kwgl-ont:percentObese ?obese. }\n" +
@@ -80,40 +80,40 @@ function getPlaceEntity(entityUri) {
         "    optional { ?place kwgl-ont:percentDiabetic ?diabetic. }\n" +
         "    optional { ?place kwgl-ont:hasPopulation ?population. }\n" +
         "    optional { ?place kwgl-ont:hasNumberOfHouseHolds ?households. }\n" +
-        "    optional {         \n" +
-        "        ?place kwgl-ont:sfWithin ?within.         \n" +
+        "    optional {\n" +
+        "        ?place kwgl-ont:sfWithin ?within.\n" +
         "        ?within a kwgl-ont:Place.\n" +
         "        optional { ?within kwgl-ont:hasName ?wName. }\n" +
         "        ?within kwgl-ont:hasKWGEntity ?wEntity.\n" +
-        "        ?within kwgl-ont:hasPlaceType ?wType.   \n" +
+        "        ?within kwgl-ont:hasPlaceType ?wType.\n" +
         "        ?wType rdfs:label ?wTypeLabel.\n" +
         "    }\n" +
-        "    optional {         \n" +
-        "        ?place kwgl-ont:sfContains ?contain.         \n" +
+        "    optional {\n" +
+        "        ?place kwgl-ont:sfContains ?contain.\n" +
         "        ?contain a kwgl-ont:Place.\n" +
         "        optional { ?contain kwgl-ont:hasName ?cName. }\n" +
         "        ?contain kwgl-ont:hasKWGEntity ?cEntity.\n" +
-        "        ?contain kwgl-ont:hasPlaceType ?cType.  \n" +
+        "        ?contain kwgl-ont:hasPlaceType ?cType.\n" +
         "        ?cType rdfs:label ?cTypeLabel.\n" +
         "    }\n" +
-        "    optional {         \n" +
-        "        ?place kwgl-ont:sfTouches ?touch.         \n" +
+        "    optional {\n" +
+        "        ?place kwgl-ont:sfTouches ?touch.\n" +
         "        ?touch a kwgl-ont:Place.\n" +
         "        optional { ?touch kwgl-ont:hasName ?tName. }\n" +
         "        ?touch kwgl-ont:hasKWGEntity ?tEntity.\n" +
-        "        ?touch kwgl-ont:hasPlaceType ?tType.  \n" +
+        "        ?touch kwgl-ont:hasPlaceType ?tType.\n" +
         "        ?tType rdfs:label ?tTypeLabel.\n" +
         "    }\n" +
-        "    optional {         \n" +
-        "        ?place kwgl-ont:sfOverlaps ?overlap.         \n" +
+        "    optional {\n" +
+        "        ?place kwgl-ont:sfOverlaps ?overlap.\n" +
         "        ?overlap a kwgl-ont:Place.\n" +
         "        optional { ?overlap kwgl-ont:hasName ?oName. }\n" +
         "        ?overlap kwgl-ont:hasKWGEntity ?oEntity.\n" +
-        "        ?overlap kwgl-ont:hasPlaceType ?oType.  \n" +
+        "        ?overlap kwgl-ont:hasPlaceType ?oType.\n" +
         "        ?oType rdfs:label ?oTypeLabel.\n" +
         "    }\n" +
-        "    optional {         \n" +
-        "        ?place kwgl-ont:impactedBy ?hazard.         \n" +
+        "    optional {\n" +
+        "        ?place kwgl-ont:impactedBy ?hazard.\n" +
         "        ?hazard a kwgl-ont:HazardEvent.\n" +
         "        ?hazard kwgl-ont:hasName ?hName.\n" +
         "        ?hazard kwgl-ont:hasKWGEntity ?hEntity.\n" +
@@ -127,20 +127,20 @@ function getPlaceEntityYearData(entityUri) {
     var placeYearQuery = "PREFIX kwgl-ont: <http://stko-kwg.geog.ucsb.edu/lod/lite-ontology/>\n" +
         "PREFIX kwglr: <http://stko-kwg.geog.ucsb.edu/lod/lite-resource/>\n" +
         "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\n" +
-        "select \n" +
-        "?fireCnt18 ?fireCnt19 ?fireCnt20 ?fireCnt21 ?fireCnt22 \n" +
-        "?hurricaneCnt18 ?hurricaneCnt19 ?hurricaneCnt20 ?hurricaneCnt21 ?hurricaneCnt22 \n" +
-        "?earthquakeCnt18 ?earthquakeCnt19 ?earthquakeCnt20 ?earthquakeCnt21 ?earthquakeCnt22 \n" +
-        "?tornadoCnt18 ?tornadoCnt19 ?tornadoCnt20 ?tornadoCnt21 ?tornadoCnt22 \n" +
-        "?surgeCnt18 ?surgeCnt19 ?surgeCnt20 ?surgeCnt21 ?surgeCnt22 \n" +
+        "select\n" +
+        "?fireCnt18 ?fireCnt19 ?fireCnt20 ?fireCnt21 ?fireCnt22\n" +
+        "?hurricaneCnt18 ?hurricaneCnt19 ?hurricaneCnt20 ?hurricaneCnt21 ?hurricaneCnt22\n" +
+        "?earthquakeCnt18 ?earthquakeCnt19 ?earthquakeCnt20 ?earthquakeCnt21 ?earthquakeCnt22\n" +
+        "?tornadoCnt18 ?tornadoCnt19 ?tornadoCnt20 ?tornadoCnt21 ?tornadoCnt22\n" +
+        "?surgeCnt18 ?surgeCnt19 ?surgeCnt20 ?surgeCnt21 ?surgeCnt22\n" +
         "?floodCnt18 ?floodCnt19 ?floodCnt20 ?floodCnt21 ?floodCnt22\n" +
         "?landslideCnt18 ?landslideCnt19 ?landslideCnt20 ?landslideCnt21 ?landslideCnt22\n" +
         "?debrisCnt18 ?debrisCnt19 ?debrisCnt20 ?debrisCnt21 ?debrisCnt22\n" +
-        "?fireCost18 ?fireCost19 ?fireCost20 ?fireCost21 ?fireCost22 \n" +
-        "?hurricaneCost18 ?hurricaneCost19 ?hurricaneCost20 ?hurricaneCost21 ?hurricaneCost22 \n" +
-        "?earthquakeCost18 ?earthquakeCost19 ?earthquakeCost20 ?earthquakeCost21 ?earthquakeCost22 \n" +
-        "?tornadoCost18 ?tornadoCost19 ?tornadoCost20 ?tornadoCost21 ?tornadoCost22 \n" +
-        "?surgeCost18 ?surgeCost19 ?surgeCost20 ?surgeCost21 ?surgeCost22 \n" +
+        "?fireCost18 ?fireCost19 ?fireCost20 ?fireCost21 ?fireCost22\n" +
+        "?hurricaneCost18 ?hurricaneCost19 ?hurricaneCost20 ?hurricaneCost21 ?hurricaneCost22\n" +
+        "?earthquakeCost18 ?earthquakeCost19 ?earthquakeCost20 ?earthquakeCost21 ?earthquakeCost22\n" +
+        "?tornadoCost18 ?tornadoCost19 ?tornadoCost20 ?tornadoCost21 ?tornadoCost22\n" +
+        "?surgeCost18 ?surgeCost19 ?surgeCost20 ?surgeCost21 ?surgeCost22\n" +
         "?floodCost18 ?floodCost19 ?floodCost20 ?floodCost21 ?floodCost22\n" +
         "?landslideCost18 ?landslideCost19 ?landslideCost20 ?landslideCost21 ?landslideCost22\n" +
         "?debrisCost18 ?debrisCost19 ?debrisCost20 ?debrisCost21 ?debrisCost22\n" +
@@ -154,11 +154,11 @@ function getPlaceEntityYearData(entityUri) {
         "?avgHeatDaysJul21 ?avgHeatDaysAug21 ?avgHeatDaysSep21 ?avgHeatDaysOct21 ?avgHeatDaysNov21 ?avgHeatDaysDec21\n" +
         "?avgCoolDaysJan21 ?avgCoolDaysFeb21 ?avgCoolDaysMar21 ?avgCoolDaysApr21 ?avgCoolDaysMay21 ?avgCoolDaysJun21\n" +
         "?avgCoolDaysJul21 ?avgCoolDaysAug21 ?avgCoolDaysSep21 ?avgCoolDaysOct21 ?avgCoolDaysNov21 ?avgCoolDaysDec21\n" +
-        "where { \n" +
+        "where {\n" +
         "    ?place a kwgl-ont:Place.\n" +
-        "    FILTER (?place = kwglr:" + entityUri + ") \n" +
+        "    FILTER (?place = kwglr:" + entityUri + ")\n" +
         "    ?place kwgl-ont:hasKWGEntity ?fullentity.\n" +
-        "    ?place kwgl-ont:hasPlaceType ?placeType.         \n" +
+        "    ?place kwgl-ont:hasPlaceType ?placeType.\n" +
         "    ?placeType rdfs:label ?typeLabel.\n" +
         "    \n" +
         "    optional { ?place kwgl-ont:numberOfFiresImpactingPlace2018 ?fireCnt18. }\n" +
@@ -331,10 +331,10 @@ function getRandomPlaces() {
         "PREFIX kwglr: <http://stko-kwg.geog.ucsb.edu/lod/lite-resource/>\n" +
         "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\n" +
         "select ?place ?fullentity ?typeLabel ?name " +
-        "where { \n" +
+        "where {\n" +
         "    ?place a kwgl-ont:Place.\n" +
         "    ?place kwgl-ont:hasKWGEntity ?fullentity.\n" +
-        "    ?place kwgl-ont:hasPlaceType ?placeType.         \n" +
+        "    ?place kwgl-ont:hasPlaceType ?placeType.\n" +
         "    ?placeType rdfs:label ?typeLabel.\n" +
         "    optional { ?place kwgl-ont:hasName ?name. }\n" +
         "    BIND(SHA512(CONCAT(STR(RAND()), STR(?place))) AS ?random)\n" +
