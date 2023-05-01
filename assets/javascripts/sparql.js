@@ -434,7 +434,7 @@ function drawHazardEntity(result) {
         let placeNames = hazard['pNames']['value'].split('|-|');
         let placeTypeLabels = hazard['pTypeLabels']['value'].split('|-|');
         for (let i = 0; i < places.length; i++) {
-            let relatedName = places[i].split('/').slice(-1);
+            let relatedName = places[i].split('/').slice(-1)[0];
             let actualName = (placeNames[i]!="") ? placeNames[i] : relatedName;
             placesHtml += '<div class="prototype-card"><h4>' + actualName + '</h4><a href="../place/?place=' + relatedName + '" class="hidden"></a><p>' + placeTypeLabels[i] + '</p></div>';
         }
@@ -521,8 +521,13 @@ function drawPlaceEntity(result) {
             let withins = place['withins']['value'].split('|-|');
             let withinNames = place['wNames']['value'].split('|-|');
             let withinTypeLabels = place['wTypeLabels']['value'].split('|-|');
+            let uniqueWithin = [];
             for (let i = 0; i < withins.length; i++) {
-                let relatedName = withins[i].split('/').slice(-1);
+                let relatedName = withins[i].split('/').slice(-1)[0];
+                if(uniqueWithin.includes(relatedName))
+                    continue;
+                else
+                    uniqueWithin.push(relatedName);
                 let actualName = (withinNames[i] != "") ? withinNames[i] : relatedName;
                 withinHtml += '<div class="prototype-card"><h4>' + actualName + '</h4><a href="../place/?place=' + relatedName + '" class="hidden"></a><p>' + withinTypeLabels[i] + '</p></div>';
             }
@@ -531,8 +536,13 @@ function drawPlaceEntity(result) {
             let rcontains = place['rcontains']['value'].split('|-|');
             let rcontainNames = place['rcNames']['value'].split('|-|');
             let rcontainTypeLabels = place['rcTypeLabels']['value'].split('|-|');
+            let uniqueRContain = [];
             for (let i = 0; i < rcontains.length; i++) {
-                let relatedName = rcontains[i].split('/').slice(-1);
+                let relatedName = rcontains[i].split('/').slice(-1)[0];
+                if(uniqueRContain.includes(relatedName))
+                    continue;
+                else
+                    uniqueRContain.push(relatedName);
                 let actualName = (rcontainNames[i] != "") ? rcontainNames[i] : relatedName;
                 withinHtml += '<div class="prototype-card"><h4>' + actualName + '</h4><a href="../place/?place=' + relatedName + '" class="hidden"></a><p>' + rcontainTypeLabels[i] + '</p></div>';
             }
@@ -551,8 +561,13 @@ function drawPlaceEntity(result) {
             let contains = place['contains']['value'].split('|-|');
             let containNames = place['cNames']['value'].split('|-|');
             let containTypeLabels = place['cTypeLabels']['value'].split('|-|');
+            let uniqueContain = [];
             for (let i = 0; i < contains.length; i++) {
-                let relatedName = contains[i].split('/').slice(-1);
+                let relatedName = contains[i].split('/').slice(-1)[0];
+                if(uniqueContain.includes(relatedName))
+                    continue;
+                else
+                    uniqueContain.push(relatedName);
                 let actualName = (containNames[i] != "") ? containNames[i] : relatedName;
                 containsHtml += '<div class="prototype-card"><h4>' + actualName + '</h4><a href="../place/?place=' + relatedName + '" class="hidden"></a><p>' + containTypeLabels[i] + '</p></div>';
             }
@@ -561,8 +576,13 @@ function drawPlaceEntity(result) {
             let rwithins = place['rwithins']['value'].split('|-|');
             let rwithinNames = place['rwNames']['value'].split('|-|');
             let rwithinTypeLabels = place['rwTypeLabels']['value'].split('|-|');
+            let uniqueRWithin = [];
             for (let i = 0; i < rwithins.length; i++) {
-                let relatedName = rwithins[i].split('/').slice(-1);
+                let relatedName = rwithins[i].split('/').slice(-1)[0];
+                if(uniqueRWithin.includes(relatedName))
+                    continue;
+                else
+                    uniqueRWithin.push(relatedName);
                 let actualName = (rwithinNames[i]!="") ? rwithinNames[i] : relatedName;
                 containsHtml += '<div class="prototype-card"><h4>' + actualName + '</h4><a href="../place/?place=' + relatedName + '" class="hidden"></a><p>' + rwithinTypeLabels[i] + '</p></div>';
             }
@@ -582,8 +602,13 @@ function drawPlaceEntity(result) {
             let touches = place['touches']['value'].split('|-|');
             let touchNames = place['tNames']['value'].split('|-|');
             let touchTypeLabels = place['tTypeLabels']['value'].split('|-|');
+            let uniqueTouch = [];
             for (let i = 0; i < touches.length; i++) {
-                let relatedName = touches[i].split('/').slice(-1);
+                let relatedName = touches[i].split('/').slice(-1)[0];
+                if(uniqueTouch.includes(relatedName))
+                    continue;
+                else
+                    uniqueTouch.push(relatedName);
                 let actualName = (touchNames[i]!="") ? touchNames[i] : relatedName;
                 surroundHtml += '<div class="prototype-card"><h4>' + actualName + '</h4><a href="../place/?place=' + relatedName + '" class="hidden"></a><p>' + touchTypeLabels[i] + '</p></div>';
             }
@@ -592,8 +617,13 @@ function drawPlaceEntity(result) {
             let rtouches = place['rtouches']['value'].split('|-|');
             let rtouchNames = place['rtNames']['value'].split('|-|');
             let rtouchTypeLabels = place['rtTypeLabels']['value'].split('|-|');
+            let uniqueRTouch = [];
             for (let i = 0; i < rtouches.length; i++) {
-                let relatedName = rtouches[i].split('/').slice(-1);
+                let relatedName = rtouches[i].split('/').slice(-1)[0];
+                if(uniqueRTouch.includes(relatedName))
+                    continue;
+                else
+                    uniqueRTouch.push(relatedName);
                 let actualName = (rtouchNames[i]!="") ? rtouchNames[i] : relatedName;
                 surroundHtml += '<div class="prototype-card"><h4>' + actualName + '</h4><a href="../place/?place=' + relatedName + '" class="hidden"></a><p>' + rtouchTypeLabels[i] + '</p></div>';
             }
@@ -602,8 +632,13 @@ function drawPlaceEntity(result) {
             let overlaps = place['overlaps']['value'].split('|-|');
             let overlapNames = place['oNames']['value'].split('|-|');
             let overlapTypeLabels = place['oTypeLabels']['value'].split('|-|');
+            let uniqueOverlap = [];
             for (let i = 0; i < overlaps.length; i++) {
-                let relatedName = overlaps[i].split('/').slice(-1);
+                let relatedName = overlaps[i].split('/').slice(-1)[0];
+                if(uniqueOverlap.includes(relatedName))
+                    continue;
+                else
+                    uniqueOverlap.push(relatedName);
                 let actualName = (overlapNames[i]!="") ? overlapNames[i] : relatedName;
                 surroundHtml += '<div class="prototype-card"><h4>' + actualName + '</h4><a href="../place/?place=' + relatedName + '" class="hidden"></a><p>' + overlapTypeLabels[i] + '</p></div>';
             }
@@ -612,8 +647,13 @@ function drawPlaceEntity(result) {
             let roverlaps = place['roverlaps']['value'].split('|-|');
             let roverlapNames = place['roNames']['value'].split('|-|');
             let roverlapTypeLabels = place['roTypeLabels']['value'].split('|-|');
+            let uniquerROverlap = [];
             for (let i = 0; i < roverlaps.length; i++) {
-                let relatedName = roverlaps[i].split('/').slice(-1);
+                let relatedName = roverlaps[i].split('/').slice(-1)[0];
+                if(uniquerROverlap.includes(relatedName))
+                    continue;
+                else
+                    uniquerROverlap.push(relatedName);
                 let actualName = (roverlapNames[i]!="") ? roverlapNames[i] : relatedName;
                 surroundHtml += '<div class="prototype-card"><h4>' + actualName + '</h4><a href="../place/?place=' + relatedName + '" class="hidden"></a><p>' + roverlapTypeLabels[i] + '</p></div>';
             }
@@ -629,7 +669,7 @@ function drawPlaceEntity(result) {
         let hazards = place['hazards']['value'].split('|-|');
         let hazardNames = hazard['hNames']['value'].split('|-|');
         for (let i = 0; i < hazards.length; i++) {
-            let relatedName = hazards[i].split('/').slice(-1);
+            let relatedName = hazards[i].split('/').slice(-1)[0];
             hazardsHtml += '<div class="prototype-card"><h4>' + hazardNames[i] + '</h4><a href="../hazard/?hazard=' + relatedName + '" class="hidden"></a> </div>';
         }
         $('.place-hazard-js').html(hazardsHtml);
