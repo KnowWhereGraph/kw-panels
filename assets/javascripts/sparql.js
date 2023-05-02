@@ -11,28 +11,31 @@ function getHazardEntity(entityUri) {
     var hazardQuery = "PREFIX kwgl-ont: <http://stko-kwg.geog.ucsb.edu/lod/lite-ontology/>\n" +
         "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n" +
         "PREFIX kwglr: <http://stko-kwg.geog.ucsb.edu/lod/lite-resource/>\n" +
-        "select ?hazard ?name ?fullentity ?type ?subtype ?start ?end (GROUP_CONCAT(?place ; separator=\"||\") AS ?places) " +
-        "(GROUP_CONCAT(?pName ; separator=\"||\") AS ?pNames) ?area ?deaths ?infrastructuredamage ?cropdamage\n" +
-        "where { \n" +
+        "select ?hazard ?name ?fullentity (GROUP_CONCAT(?type ; separator=\"|-|\") AS ?types) ?subtype ?start ?end\n" +
+        "(GROUP_CONCAT(?place ; separator=\"|-|\") AS ?places) (GROUP_CONCAT(?pName ; separator=\"|-|\") AS ?pNames) (GROUP_CONCAT(?pTypeLabel ; separator=\"|-|\") AS ?pTypeLabels)\n" +
+        "?area ?deaths ?infrastructuredamage ?cropdamage\n" +
+        "where {\n" +
         "    ?hazard a kwgl-ont:HazardEvent.\n" +
-        "    FILTER (?hazard = kwglr:" + entityUri + ") \n" +
+        "    FILTER (?hazard = kwglr:" + entityUri + ")\n" +
         "    ?hazard kwgl-ont:hasName ?name.\n" +
         "    ?hazard kwgl-ont:hasKWGEntity ?fullentity.\n" +
         "    ?hazard rdf:type ?type.\n" +
-        "    FILTER(?type != kwgl-ont:HazardEvent) . \n" +
         "    optional { ?hazard kwgl-ont:isOfFireType ?subtype. }\n" +
         "    optional { ?hazard kwgl-ont:hasStartDate ?start. }\n" +
         "    optional { ?hazard kwgl-ont:hasEndDate ?end. }\n" +
         "    optional {\n" +
         "        ?hazard kwgl-ont:hasImpacted ?place.\n" +
-        "        ?place kwgl-ont:hasName ?pName.\n" +
+        "        ?place a kwgl-ont:Place.\n" +
+        "        optional { ?place kwgl-ont:hasName ?pName. }\n" +
         "        ?place kwgl-ont:hasKWGEntity ?pEntity.\n" +
+        "        ?place kwgl-ont:hasPlaceType ?pType.\n" +
+        "        ?placeType rdfs:label ?pTypeLabel.\n" +
         "    }\n" +
         "    optional { ?hazard kwgl-ont:affectedAreaInAcres ?area. }\n" +
         "    optional { ?hazard kwgl-ont:numberOfDeaths ?deaths. }\n" +
         "    optional { ?hazard kwgl-ont:damageToInfrastructureInDollars ?infrastructuredamage. }\n" +
         "    optional { ?hazard kwgl-ont:damageToCropsInDollars ?cropdamage. }\n" +
-        "} GROUP BY ?hazard ?name ?fullentity ?type ?subtype ?start ?end ?area ?deaths ?infrastructuredamage ?cropdamage";
+        "} GROUP BY ?hazard ?name ?fullentity ?subtype ?start ?end ?area ?deaths ?infrastructuredamage ?cropdamage";
 
     submitQuery(hazardQuery, "drawHazardEntity");
 }
@@ -41,149 +44,117 @@ function getRandomHazards() {
     var hazardQuery = "PREFIX kwgl-ont: <http://stko-kwg.geog.ucsb.edu/lod/lite-ontology/>\n" +
         "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n" +
         "PREFIX kwglr: <http://stko-kwg.geog.ucsb.edu/lod/lite-resource/>\n" +
-        "select ?hazard ?name ?fullentity ?type ?subtype\n" +
-        "where { \n" +
+        "select ?hazard ?name ?fullentity (GROUP_CONCAT(?type ; separator=\"|-|\") AS ?types) ?subtype\n" +
+        "where {\n" +
         "    ?hazard a kwgl-ont:HazardEvent.\n" +
         "    ?hazard kwgl-ont:hasName ?name.\n" +
         "    ?hazard kwgl-ont:hasKWGEntity ?fullentity.\n" +
         "    ?hazard rdf:type ?type.\n" +
-        "    FILTER(?type != kwgl-ont:HazardEvent) . \n" +
         "    optional { ?hazard kwgl-ont:isOfFireType ?subtype. }\n" +
-        "} ORDER BY RAND() LIMIT 10";
+        "    BIND(SHA512(CONCAT(STR(RAND()), STR(?hazard))) AS ?random)\n" +
+        "} GROUP BY ?hazard ?name ?fullentity ?subtype ?random ORDER BY ?random LIMIT 10";
 
     submitQuery(hazardQuery, "drawBrowseHazards");
-}
-
-function drawHazardEntity(result) {
-    let hazard = result[0];
-    console.log(hazard);
-
-    $('.hazard-name-js').text(hazard['name']['value']);
-
-    let cardHeader = hazard['name']['value'];
-
-    let hazardHtml = "<h2>" + cardHeader + "</h2>";
-
-    if(hazard['subtype'] != null)
-        hazardHtml += "<h4>" + hazard['subtype']['value'].split('/').slice(-1) + "</h4>";
-    else if(hazard['type'] != null)
-        hazardHtml += "<h4>" + hazard['type']['value'].split('/').slice(-1) + "</h4>";
-
-    let propertyString = "";
-    if(hazard['start'] != null) {
-        const date = new Date(hazard['start']['value']);
-        propertyString += "<span><b>Start Date:</b> " + date.toString().split(' (')[0] + "</span>";
-    }
-    if(hazard['end'] != null) {
-        const date = new Date(hazard['end']['value']);
-        propertyString += "<span><b>End Date:</b> " + date.toString().split(' (')[0] + "</span>";
-    }
-    if(hazard['area'] != null)
-        propertyString += "<span><b>Area affected:</b> " + hazard['area']['value'] + " acres</span>";
-    if(hazard['deaths'] != null)
-        propertyString += "<span><b>Death toll:</b> " + hazard['deaths']['value'] + "</span>";
-    if(hazard['infrastructuredamage'] != null)
-        propertyString += "<span><b>Loss of Infrastructure:</b> " + dollarFormatter.format(hazard['infrastructuredamage']['value']) + "</span>";
-    if(hazard['cropdamage'] != null)
-        propertyString += "<span><b>Loss of Crops:</b> " + dollarFormatter.format(hazard['cropdamage']['value']) + "</span>";
-    if(propertyString != "")
-        hazardHtml += "<p>" + propertyString + "</p>";
-
-    $('.hazard-card-js').prepend(hazardHtml);
-
-    $('.hazard-uri-js').attr("href", hazard['fullentity']['value']);
-
-    let baseURL = location.protocol + '//' + location.host + location.pathname;
-    let iframeText = '<iframe src="' + baseURL + 'embed/?hazard='
-        + hazard['hazard']['value'].split('/').slice(-1)
-        + '" title="' + hazard['name']['value'] + ' - KW Panel" style="height:'
-        + $('.hazard-card-js').outerHeight()
-        + 'px"></iframe>';
-
-    $('.hazard-iframe-header-js').text("Embed " + hazard['name']['value']);
-    $('.hazard-iframe-js').val(iframeText);
-
-    let placesHtml = "";
-    if(hazard['places'] != null && hazard['places']['value'] != '') {
-        let places = hazard['places']['value'].split('||');
-        let placeNames = hazard['pNames']['value'].split('||');
-        for (var i = 0; i < places.length; i++) {
-            let relatedName = places[i].split('/').slice(-1);
-            placesHtml += '<div class="prototype-card"><h4>' + placeNames[i] + '</h4><a href="../place/?place=' + relatedName + '" class="hidden"></a> </div>';
-        }
-        $('.hazard-impacted-js').html(placesHtml);
-    } else {
-        $('.hazard-impacted-header-js').remove();
-        $('.hazard-impacted-js').remove();
-    }
-}
-
-function drawBrowseHazards(result) {
-    console.log(result);
-    let browseHtml = "";
-    for (var i = 0; i < result.length; i++) {
-        let entity = result[i];
-        let relatedName = entity['hazard']['value'].split('/').slice(-1);
-        let hazardType = (entity['subtype'] != null) ? entity['subtype']['value'].split('/').slice(-1) : entity['type']['value'].split('/').slice(-1);
-
-        browseHtml += '<div class="prototype-card"><h4>' + entity['name']['value'] + '</h4><a href="../hazard/?hazard=' + relatedName + '" class="hidden"></a><p>' + hazardType + '</p></div>';
-    }
-    $('.explore-hazards-js').html(browseHtml);
 }
 
 function getPlaceEntity(entityUri) {
     var placeQuery = "PREFIX kwgl-ont: <http://stko-kwg.geog.ucsb.edu/lod/lite-ontology/>\n" +
         "PREFIX kwglr: <http://stko-kwg.geog.ucsb.edu/lod/lite-resource/>\n" +
         "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\n" +
-        "select ?place ?name ?fullentity ?typeLabel (GROUP_CONCAT(?within ; separator=\"||\") AS ?withins) (GROUP_CONCAT(?wName ; separator=\"||\") AS ?wNames) " +
-        "(GROUP_CONCAT(?contain ; separator=\"||\") AS ?contains) (GROUP_CONCAT(?cName ; separator=\"||\") AS ?cNames) " +
-        "(GROUP_CONCAT(?touch ; separator=\"||\") AS ?touches) (GROUP_CONCAT(?tName ; separator=\"||\") AS ?tNames) " +
-        "(GROUP_CONCAT(?overlap ; separator=\"||\") AS ?overlaps) (GROUP_CONCAT(?oName ; separator=\"||\") AS ?oNames) " +
-        "(GROUP_CONCAT(?hazard ; separator=\"||\") AS ?hazards) (GROUP_CONCAT(?hName ; separator=\"||\") AS ?hNames) " +
-        "?avgTemp ?maxTemp ?minTemp ?obese ?poverty ?diabetic ?population ?households " +
+        "select ?place ?fullentity ?typeLabel ?name\n" +
+        "?obese ?poverty ?diabetic ?population ?households \n" +
+        "(GROUP_CONCAT(?within ; separator=\"|-|\") AS ?withins) (GROUP_CONCAT(?wName ; separator=\"|-|\") AS ?wNames) (GROUP_CONCAT(?wTypeLabel ; separator=\"|-|\") AS ?wTypeLabels)\n" +
+        "(GROUP_CONCAT(?rwithin ; separator=\"|-|\") AS ?rwithins) (GROUP_CONCAT(?rwName ; separator=\"|-|\") AS ?rwNames) (GROUP_CONCAT(?rwTypeLabel ; separator=\"|-|\") AS ?rwTypeLabels)\n" +
+        "(GROUP_CONCAT(?contain ; separator=\"|-|\") AS ?contains) (GROUP_CONCAT(?cName ; separator=\"|-|\") AS ?cNames) (GROUP_CONCAT(?cTypeLabel ; separator=\"|-|\") AS ?cTypeLabels)\n" +
+        "(GROUP_CONCAT(?rcontain ; separator=\"|-|\") AS ?rcontains) (GROUP_CONCAT(?rcName ; separator=\"|-|\") AS ?rcNames) (GROUP_CONCAT(?rcTypeLabel ; separator=\"|-|\") AS ?rcTypeLabels)\n" +
+        "(GROUP_CONCAT(?touch ; separator=\"|-|\") AS ?touches) (GROUP_CONCAT(?tName ; separator=\"|-|\") AS ?tNames) (GROUP_CONCAT(?tTypeLabel ; separator=\"|-|\") AS ?tTypeLabels)\n" +
+        "(GROUP_CONCAT(?rtouch ; separator=\"|-|\") AS ?rtouches) (GROUP_CONCAT(?rtName ; separator=\"|-|\") AS ?rtNames) (GROUP_CONCAT(?rtTypeLabel ; separator=\"|-|\") AS ?rtTypeLabels)\n" +
+        "(GROUP_CONCAT(?overlap ; separator=\"|-|\") AS ?overlaps) (GROUP_CONCAT(?oName ; separator=\"|-|\") AS ?oNames) (GROUP_CONCAT(?oTypeLabel ; separator=\"|-|\") AS ?oTypeLabels)\n" +
+        "(GROUP_CONCAT(?roverlap ; separator=\"|-|\") AS ?roverlaps) (GROUP_CONCAT(?roName ; separator=\"|-|\") AS ?roNames) (GROUP_CONCAT(?roTypeLabel ; separator=\"|-|\") AS ?roTypeLabels)\n" +
+        "(GROUP_CONCAT(?hazard ; separator=\"|-|\") AS ?hazards) (GROUP_CONCAT(?hName ; separator=\"|-|\") AS ?hNames)\n" +
         "where { \n" +
         "    ?place a kwgl-ont:Place.\n" +
         "    FILTER (?place = kwglr:" + entityUri + ") \n" +
-        "    ?place kwgl-ont:hasName ?name.\n" +
         "    ?place kwgl-ont:hasKWGEntity ?fullentity.\n" +
-        "    optional { " +
-        "        ?place kwgl-ont:hasPlaceType ?placeType. " +
-        "        ?placeType rdfs:label ?typeLabel.\n" +
-        "    }\n" +
-        "    optional { " +
-        "        ?place kwgl-ont:sfWithin ?within. " +
-        "        ?within kwgl-ont:hasName ?wName.\n" +
-        "        ?within kwgl-ont:hasKWGEntity ?wEntity.\n" +
-        "    }\n" +
-        "    optional { " +
-        "        ?place kwgl-ont:sfContains ?contain. " +
-        "        ?contain kwgl-ont:hasName ?cName.\n" +
-        "        ?contain kwgl-ont:hasKWGEntity ?cEntity.\n" +
-        "    }\n" +
-        "    optional { " +
-        "        ?place kwgl-ont:sfTouches ?touch. " +
-        "        ?touch kwgl-ont:hasName ?tName.\n" +
-        "        ?touch kwgl-ont:hasKWGEntity ?tEntity.\n" +
-        "    }\n" +
-        "    optional { " +
-        "        ?place kwgl-ont:sfOverlaps ?overlap. " +
-        "        ?overlap kwgl-ont:hasName ?oName.\n" +
-        "        ?overlap kwgl-ont:hasKWGEntity ?oEntity.\n" +
-        "    }\n" +
-        "    optional { " +
-        "        ?place kwgl-ont:impactedBy ?hazard. " +
-        "        ?hazard kwgl-ont:hasName ?hName.\n" +
-        "        ?hazard kwgl-ont:hasKWGEntity ?hEntity.\n" +
-        "    }\n" +
-        "    optional { ?place kwgl-ont:averageMonthlyTemperatureInCelcius ?avgTemp. }\n" +
-        "    optional { ?place kwgl-ont:maximumMonthlyTemperatureInCelcius ?maxTemp. }\n" +
-        "    optional { ?place kwgl-ont:minimumMonthlyTemperatureInCelcius ?minTemp. }\n" +
+        "    ?place kwgl-ont:hasPlaceType ?placeType.\n" +
+        "    ?placeType rdfs:label ?typeLabel.\n" +
+        "    optional { ?place kwgl-ont:hasName ?name. }\n" +
         "    optional { ?place kwgl-ont:percentObese ?obese. }\n" +
         "    optional { ?place kwgl-ont:percentBelowPovertyLine ?poverty. }\n" +
         "    optional { ?place kwgl-ont:percentDiabetic ?diabetic. }\n" +
         "    optional { ?place kwgl-ont:hasPopulation ?population. }\n" +
         "    optional { ?place kwgl-ont:hasNumberOfHouseHolds ?households. }\n" +
-        "} GROUP BY ?place ?name ?fullentity ?typeLabel ?avgTemp ?maxTemp ?minTemp ?obese ?poverty ?diabetic ?population ?households";
+        "    optional {\n" +
+        "        ?place kwgl-ont:sfWithin ?within.\n" +
+        "        ?within a kwgl-ont:Place.\n" +
+        "        optional { ?within kwgl-ont:hasName ?wName. }\n" +
+        "        ?within kwgl-ont:hasKWGEntity ?wEntity.\n" +
+        "        ?within kwgl-ont:hasPlaceType ?wType.\n" +
+        "        ?wType rdfs:label ?wTypeLabel.\n" +
+        "    }\n" +
+        "    optional {\n" +
+        "        ?rwithin kwgl-ont:sfWithin ?place.\n" +
+        "        ?rwithin a kwgl-ont:Place.\n" +
+        "        optional { ?rwithin kwgl-ont:hasName ?rwName. }\n" +
+        "        ?rwithin kwgl-ont:hasKWGEntity ?rwEntity.\n" +
+        "        ?rwithin kwgl-ont:hasPlaceType ?rwType.\n" +
+        "        ?rwType rdfs:label ?rwTypeLabel.\n" +
+        "    }\n" +
+        "    optional {\n" +
+        "        ?place kwgl-ont:sfContains ?contain.\n" +
+        "        ?contain a kwgl-ont:Place.\n" +
+        "        optional { ?contain kwgl-ont:hasName ?cName. }\n" +
+        "        ?contain kwgl-ont:hasKWGEntity ?cEntity.\n" +
+        "        ?contain kwgl-ont:hasPlaceType ?cType.\n" +
+        "        ?cType rdfs:label ?cTypeLabel.\n" +
+        "    }\n" +
+        "    optional {\n" +
+        "        ?rcontain kwgl-ont:sfContains ?place.\n" +
+        "        ?rcontain a kwgl-ont:Place.\n" +
+        "        optional { ?rcontain kwgl-ont:hasName ?rcName. }\n" +
+        "        ?rcontain kwgl-ont:hasKWGEntity ?rcEntity.\n" +
+        "        ?rcontain kwgl-ont:hasPlaceType ?rcType.\n" +
+        "        ?rcType rdfs:label ?rcTypeLabel.\n" +
+        "    }\n" +
+        "    optional {\n" +
+        "        ?place kwgl-ont:sfTouches ?touch.\n" +
+        "        ?touch a kwgl-ont:Place.\n" +
+        "        optional { ?touch kwgl-ont:hasName ?tName. }\n" +
+        "        ?touch kwgl-ont:hasKWGEntity ?tEntity.\n" +
+        "        ?touch kwgl-ont:hasPlaceType ?tType.\n" +
+        "        ?tType rdfs:label ?tTypeLabel.\n" +
+        "    }\n" +
+        "    optional {\n" +
+        "        ?rtouch kwgl-ont:sfTouches ?place.\n" +
+        "        ?rtouch a kwgl-ont:Place.\n" +
+        "        optional { ?rtouch kwgl-ont:hasName ?rtName. }\n" +
+        "        ?rtouch kwgl-ont:hasKWGEntity ?rtEntity.\n" +
+        "        ?rtouch kwgl-ont:hasPlaceType ?rtType.\n" +
+        "        ?rtType rdfs:label ?rtTypeLabel.\n" +
+        "    }\n" +
+        "    optional {\n" +
+        "        ?place kwgl-ont:sfOverlaps ?overlap.\n" +
+        "        ?overlap a kwgl-ont:Place.\n" +
+        "        optional { ?overlap kwgl-ont:hasName ?oName. }\n" +
+        "        ?overlap kwgl-ont:hasKWGEntity ?oEntity.\n" +
+        "        ?overlap kwgl-ont:hasPlaceType ?oType.\n" +
+        "        ?oType rdfs:label ?oTypeLabel.\n" +
+        "    }\n" +
+        "    optional {\n" +
+        "        ?roverlap kwgl-ont:sfOverlaps ?place.\n" +
+        "        ?roverlap a kwgl-ont:Place.\n" +
+        "        optional { ?roverlap kwgl-ont:hasName ?roName. }\n" +
+        "        ?roverlap kwgl-ont:hasKWGEntity ?roEntity.\n" +
+        "        ?roverlap kwgl-ont:hasPlaceType ?roType.\n" +
+        "        ?roType rdfs:label ?roTypeLabel.\n" +
+        "    }\n" +
+        "    optional {\n" +
+        "        ?place kwgl-ont:impactedBy ?hazard.\n" +
+        "        ?hazard a kwgl-ont:HazardEvent.\n" +
+        "        ?hazard kwgl-ont:hasName ?hName.\n" +
+        "        ?hazard kwgl-ont:hasKWGEntity ?hEntity.\n" +
+        "    }\n" +
+        "} GROUP BY ?place ?name ?fullentity ?typeLabel ?obese ?poverty ?diabetic ?population ?households";
 
     submitQuery(placeQuery, "drawPlaceEntity");
 }
@@ -191,20 +162,21 @@ function getPlaceEntity(entityUri) {
 function getPlaceEntityYearData(entityUri) {
     var placeYearQuery = "PREFIX kwgl-ont: <http://stko-kwg.geog.ucsb.edu/lod/lite-ontology/>\n" +
         "PREFIX kwglr: <http://stko-kwg.geog.ucsb.edu/lod/lite-resource/>\n" +
-        "select \n" +
-        "?fireCnt18 ?fireCnt19 ?fireCnt20 ?fireCnt21 ?fireCnt22 \n" +
-        "?hurricaneCnt18 ?hurricaneCnt19 ?hurricaneCnt20 ?hurricaneCnt21 ?hurricaneCnt22 \n" +
-        "?earthquakeCnt18 ?earthquakeCnt19 ?earthquakeCnt20 ?earthquakeCnt21 ?earthquakeCnt22 \n" +
-        "?tornadoCnt18 ?tornadoCnt19 ?tornadoCnt20 ?tornadoCnt21 ?tornadoCnt22 \n" +
-        "?surgeCnt18 ?surgeCnt19 ?surgeCnt20 ?surgeCnt21 ?surgeCnt22 \n" +
+        "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\n" +
+        "select\n" +
+        "?fireCnt18 ?fireCnt19 ?fireCnt20 ?fireCnt21 ?fireCnt22\n" +
+        "?hurricaneCnt18 ?hurricaneCnt19 ?hurricaneCnt20 ?hurricaneCnt21 ?hurricaneCnt22\n" +
+        "?earthquakeCnt18 ?earthquakeCnt19 ?earthquakeCnt20 ?earthquakeCnt21 ?earthquakeCnt22\n" +
+        "?tornadoCnt18 ?tornadoCnt19 ?tornadoCnt20 ?tornadoCnt21 ?tornadoCnt22\n" +
+        "?surgeCnt18 ?surgeCnt19 ?surgeCnt20 ?surgeCnt21 ?surgeCnt22\n" +
         "?floodCnt18 ?floodCnt19 ?floodCnt20 ?floodCnt21 ?floodCnt22\n" +
         "?landslideCnt18 ?landslideCnt19 ?landslideCnt20 ?landslideCnt21 ?landslideCnt22\n" +
         "?debrisCnt18 ?debrisCnt19 ?debrisCnt20 ?debrisCnt21 ?debrisCnt22\n" +
-        "?fireCost18 ?fireCost19 ?fireCost20 ?fireCost21 ?fireCost22 \n" +
-        "?hurricaneCost18 ?hurricaneCost19 ?hurricaneCost20 ?hurricaneCost21 ?hurricaneCost22 \n" +
-        "?earthquakeCost18 ?earthquakeCost19 ?earthquakeCost20 ?earthquakeCost21 ?earthquakeCost22 \n" +
-        "?tornadoCost18 ?tornadoCost19 ?tornadoCost20 ?tornadoCost21 ?tornadoCost22 \n" +
-        "?surgeCost18 ?surgeCost19 ?surgeCost20 ?surgeCost21 ?surgeCost22 \n" +
+        "?fireCost18 ?fireCost19 ?fireCost20 ?fireCost21 ?fireCost22\n" +
+        "?hurricaneCost18 ?hurricaneCost19 ?hurricaneCost20 ?hurricaneCost21 ?hurricaneCost22\n" +
+        "?earthquakeCost18 ?earthquakeCost19 ?earthquakeCost20 ?earthquakeCost21 ?earthquakeCost22\n" +
+        "?tornadoCost18 ?tornadoCost19 ?tornadoCost20 ?tornadoCost21 ?tornadoCost22\n" +
+        "?surgeCost18 ?surgeCost19 ?surgeCost20 ?surgeCost21 ?surgeCost22\n" +
         "?floodCost18 ?floodCost19 ?floodCost20 ?floodCost21 ?floodCost22\n" +
         "?landslideCost18 ?landslideCost19 ?landslideCost20 ?landslideCost21 ?landslideCost22\n" +
         "?debrisCost18 ?debrisCost19 ?debrisCost20 ?debrisCost21 ?debrisCost22\n" +
@@ -218,11 +190,12 @@ function getPlaceEntityYearData(entityUri) {
         "?avgHeatDaysJul21 ?avgHeatDaysAug21 ?avgHeatDaysSep21 ?avgHeatDaysOct21 ?avgHeatDaysNov21 ?avgHeatDaysDec21\n" +
         "?avgCoolDaysJan21 ?avgCoolDaysFeb21 ?avgCoolDaysMar21 ?avgCoolDaysApr21 ?avgCoolDaysMay21 ?avgCoolDaysJun21\n" +
         "?avgCoolDaysJul21 ?avgCoolDaysAug21 ?avgCoolDaysSep21 ?avgCoolDaysOct21 ?avgCoolDaysNov21 ?avgCoolDaysDec21\n" +
-        "where { \n" +
+        "where {\n" +
         "    ?place a kwgl-ont:Place.\n" +
-        "    FILTER (?place = kwglr:" + entityUri + ") \n" +
-        "    ?place kwgl-ont:hasName ?name.\n" +
+        "    FILTER (?place = kwglr:" + entityUri + ")\n" +
         "    ?place kwgl-ont:hasKWGEntity ?fullentity.\n" +
+        "    ?place kwgl-ont:hasPlaceType ?placeType.\n" +
+        "    ?placeType rdfs:label ?typeLabel.\n" +
         "    \n" +
         "    optional { ?place kwgl-ont:numberOfFiresImpactingPlace2018 ?fireCnt18. }\n" +
         "    optional { ?place kwgl-ont:numberOfFiresImpactingPlace2019 ?fireCnt19. }\n" +
@@ -333,31 +306,31 @@ function getPlaceEntityYearData(entityUri) {
         "    optional { ?place kwgl-ont:averageMonthlyTemperatureInCelsiusNov2021 ?avgTempNov21. }\n" +
         "    optional { ?place kwgl-ont:averageMonthlyTemperatureInCelsiusDec2021 ?avgTempDec21. }\n" +
         "    \n" +
-        "    optional { ?place kwgl-ont:maxMonthlyTemperatureInCelciusJan2021 ?maxTempJan21. }\n" +
-        "    optional { ?place kwgl-ont:maxMonthlyTemperatureInCelciusFeb2021 ?maxTempFeb21. }\n" +
-        "    optional { ?place kwgl-ont:maxMonthlyTemperatureInCelciusMar2021 ?maxTempMar21. }\n" +
-        "    optional { ?place kwgl-ont:maxMonthlyTemperatureInCelciusApr2021 ?maxTempApr21. }\n" +
-        "    optional { ?place kwgl-ont:maxMonthlyTemperatureInCelciusMay2021 ?maxTempMay21. }\n" +
-        "    optional { ?place kwgl-ont:maxMonthlyTemperatureInCelciusJun2021 ?maxTempJun21. }\n" +
-        "    optional { ?place kwgl-ont:maxMonthlyTemperatureInCelciusJul2021 ?maxTempJul21. }\n" +
-        "    optional { ?place kwgl-ont:maxMonthlyTemperatureInCelciusAug2021 ?maxTempAug21. }\n" +
-        "    optional { ?place kwgl-ont:maxMonthlyTemperatureInCelciusSep2021 ?maxTempSep21. }\n" +
-        "    optional { ?place kwgl-ont:maxMonthlyTemperatureInCelciusOct2021 ?maxTempOct21. }\n" +
-        "    optional { ?place kwgl-ont:maxMonthlyTemperatureInCelciusNov2021 ?maxTempNov21. }\n" +
-        "    optional { ?place kwgl-ont:maxMonthlyTemperatureInCelciusDec2021 ?maxTempDec21. }\n" +
+        "    optional { ?place kwgl-ont:maxMonthlyTemperatureInCelsiusJan2021 ?maxTempJan21. }\n" +
+        "    optional { ?place kwgl-ont:maxMonthlyTemperatureInCelsiusFeb2021 ?maxTempFeb21. }\n" +
+        "    optional { ?place kwgl-ont:maxMonthlyTemperatureInCelsiusMar2021 ?maxTempMar21. }\n" +
+        "    optional { ?place kwgl-ont:maxMonthlyTemperatureInCelsiusApr2021 ?maxTempApr21. }\n" +
+        "    optional { ?place kwgl-ont:maxMonthlyTemperatureInCelsiusMay2021 ?maxTempMay21. }\n" +
+        "    optional { ?place kwgl-ont:maxMonthlyTemperatureInCelsiusJun2021 ?maxTempJun21. }\n" +
+        "    optional { ?place kwgl-ont:maxMonthlyTemperatureInCelsiusJul2021 ?maxTempJul21. }\n" +
+        "    optional { ?place kwgl-ont:maxMonthlyTemperatureInCelsiusAug2021 ?maxTempAug21. }\n" +
+        "    optional { ?place kwgl-ont:maxMonthlyTemperatureInCelsiusSep2021 ?maxTempSep21. }\n" +
+        "    optional { ?place kwgl-ont:maxMonthlyTemperatureInCelsiusOct2021 ?maxTempOct21. }\n" +
+        "    optional { ?place kwgl-ont:maxMonthlyTemperatureInCelsiusNov2021 ?maxTempNov21. }\n" +
+        "    optional { ?place kwgl-ont:maxMonthlyTemperatureInCelsiusDec2021 ?maxTempDec21. }\n" +
         "    \n" +
-        "    optional { ?place kwgl-ont:minMonthlyTemperatureInCelciusJan2021 ?minTempJan21. }\n" +
-        "    optional { ?place kwgl-ont:minMonthlyTemperatureInCelciusFeb2021 ?minTempFeb21. }\n" +
-        "    optional { ?place kwgl-ont:minMonthlyTemperatureInCelciusMar2021 ?minTempMar21. }\n" +
-        "    optional { ?place kwgl-ont:minMonthlyTemperatureInCelciusApr2021 ?minTempApr21. }\n" +
-        "    optional { ?place kwgl-ont:minMonthlyTemperatureInCelciusMay2021 ?minTempMay21. }\n" +
-        "    optional { ?place kwgl-ont:minMonthlyTemperatureInCelciusJun2021 ?minTempJun21. }\n" +
-        "    optional { ?place kwgl-ont:minMonthlyTemperatureInCelciusJul2021 ?minTempJul21. }\n" +
-        "    optional { ?place kwgl-ont:minMonthlyTemperatureInCelciusAug2021 ?minTempAug21. }\n" +
-        "    optional { ?place kwgl-ont:minMonthlyTemperatureInCelciusSep2021 ?minTempSep21. }\n" +
-        "    optional { ?place kwgl-ont:minMonthlyTemperatureInCelciusOct2021 ?minTempOct21. }\n" +
-        "    optional { ?place kwgl-ont:minMonthlyTemperatureInCelciusNov2021 ?minTempNov21. }\n" +
-        "    optional { ?place kwgl-ont:minMonthlyTemperatureInCelciusDec2021 ?minTempDec21. }\n" +
+        "    optional { ?place kwgl-ont:minMonthlyTemperatureInCelsiusJan2021 ?minTempJan21. }\n" +
+        "    optional { ?place kwgl-ont:minMonthlyTemperatureInCelsiusFeb2021 ?minTempFeb21. }\n" +
+        "    optional { ?place kwgl-ont:minMonthlyTemperatureInCelsiusMar2021 ?minTempMar21. }\n" +
+        "    optional { ?place kwgl-ont:minMonthlyTemperatureInCelsiusApr2021 ?minTempApr21. }\n" +
+        "    optional { ?place kwgl-ont:minMonthlyTemperatureInCelsiusMay2021 ?minTempMay21. }\n" +
+        "    optional { ?place kwgl-ont:minMonthlyTemperatureInCelsiusJun2021 ?minTempJun21. }\n" +
+        "    optional { ?place kwgl-ont:minMonthlyTemperatureInCelsiusJul2021 ?minTempJul21. }\n" +
+        "    optional { ?place kwgl-ont:minMonthlyTemperatureInCelsiusAug2021 ?minTempAug21. }\n" +
+        "    optional { ?place kwgl-ont:minMonthlyTemperatureInCelsiusSep2021 ?minTempSep21. }\n" +
+        "    optional { ?place kwgl-ont:minMonthlyTemperatureInCelsiusOct2021 ?minTempOct21. }\n" +
+        "    optional { ?place kwgl-ont:minMonthlyTemperatureInCelsiusNov2021 ?minTempNov21. }\n" +
+        "    optional { ?place kwgl-ont:minMonthlyTemperatureInCelsiusDec2021 ?minTempDec21. }\n" +
         "    \n" +
         "    optional { ?place kwgl-ont:averageHeatingDegreeDaysPerMonthJan2021 ?avgHeatDaysJan21. }\n" +
         "    optional { ?place kwgl-ont:averageHeatingDegreeDaysPerMonthFeb2021 ?avgHeatDaysFeb21. }\n" +
@@ -393,18 +366,111 @@ function getRandomPlaces() {
     var placeQuery = "PREFIX kwgl-ont: <http://stko-kwg.geog.ucsb.edu/lod/lite-ontology/>\n" +
         "PREFIX kwglr: <http://stko-kwg.geog.ucsb.edu/lod/lite-resource/>\n" +
         "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\n" +
-        "select ?place ?name ?fullentity ?typeLabel " +
-        "where { \n" +
+        "select ?place ?fullentity ?typeLabel ?name " +
+        "where {\n" +
         "    ?place a kwgl-ont:Place.\n" +
-        "    ?place kwgl-ont:hasName ?name.\n" +
         "    ?place kwgl-ont:hasKWGEntity ?fullentity.\n" +
-        "    optional { " +
-        "        ?place kwgl-ont:hasPlaceType ?placeType. " +
-        "        ?placeType rdfs:label ?typeLabel.\n" +
-        "    }\n" +
-        "} ORDER BY RAND() LIMIT 10";
+        "    ?place kwgl-ont:hasPlaceType ?placeType.\n" +
+        "    ?placeType rdfs:label ?typeLabel.\n" +
+        "    optional { ?place kwgl-ont:hasName ?name. }\n" +
+        "    BIND(SHA512(CONCAT(STR(RAND()), STR(?place))) AS ?random)\n" +
+        "} ORDER BY ?random LIMIT 20";
 
     submitQuery(placeQuery, "drawBrowsePlaces");
+}
+
+function drawHazardEntity(result) {
+    let hazard = result[0];
+    console.log(hazard);
+
+    $('.hazard-name-js').text(hazard['name']['value']);
+
+    let cardHeader = hazard['name']['value'];
+
+    let hazardHtml = "<h2>" + cardHeader + "</h2>";
+
+    if(hazard['subtype'] != null)
+        hazardHtml += "<h4>" + hazard['subtype']['value'].split('/').slice(-1) + "</h4>";
+    else if(hazard['types'] != null)
+        hazardHtml += "<h4>" + extractHazardType(hazard['types']['value']) + "</h4>";
+
+    let propertyString = "";
+    if(hazard['start'] != null) {
+        const date = new Date(hazard['start']['value']);
+        propertyString += "<span><b>Start Date:</b> " + date.toString().split(' (')[0] + "</span>";
+    }
+    if(hazard['end'] != null) {
+        const date = new Date(hazard['end']['value']);
+        propertyString += "<span><b>End Date:</b> " + date.toString().split(' (')[0] + "</span>";
+    }
+    if(hazard['area'] != null)
+        propertyString += "<span><b>Area affected:</b> " + hazard['area']['value'] + " acres</span>";
+    if(hazard['deaths'] != null)
+        propertyString += "<span><b>Death toll:</b> " + hazard['deaths']['value'] + "</span>";
+    if(hazard['infrastructuredamage'] != null)
+        propertyString += "<span><b>Loss of Infrastructure:</b> " + dollarFormatter.format(hazard['infrastructuredamage']['value']) + "</span>";
+    if(hazard['cropdamage'] != null)
+        propertyString += "<span><b>Loss of Crops:</b> " + dollarFormatter.format(hazard['cropdamage']['value']) + "</span>";
+    if(propertyString != "")
+        hazardHtml += "<p>" + propertyString + "</p>";
+
+    $('.hazard-card-js').prepend(hazardHtml);
+
+    $('.hazard-uri-js').attr("href", hazard['fullentity']['value']);
+
+    let baseURL = location.protocol + '//' + location.host + location.pathname;
+    let iframeText = '<iframe src="' + baseURL + 'embed/?hazard='
+        + hazard['hazard']['value'].split('/').slice(-1)
+        + '" title="' + hazard['name']['value'] + ' - KW Panel" style="height:'
+        + $('.hazard-card-js').outerHeight()
+        + 'px"></iframe>';
+
+    $('.hazard-iframe-header-js').text("Embed " + hazard['name']['value']);
+    $('.hazard-iframe-js').val(iframeText);
+
+    let placesHtml = "";
+    if(hazard['places'] != null && hazard['places']['value'] != '') {
+        let places = hazard['places']['value'].split('|-|');
+        let placeNames = hazard['pNames']['value'].split('|-|');
+        let placeTypeLabels = hazard['pTypeLabels']['value'].split('|-|');
+        for (let i = 0; i < places.length; i++) {
+            let relatedName = places[i].split('/').slice(-1)[0];
+            let actualName = (placeNames[i]!="") ? placeNames[i] : relatedName;
+            placesHtml += '<div class="prototype-card"><h4>' + actualName + '</h4><a href="../place/?place=' + relatedName + '" class="hidden"></a><p>' + placeTypeLabels[i] + '</p></div>';
+        }
+        $('.hazard-impacted-js').html(placesHtml);
+    } else {
+        $('.hazard-impacted-header-js').remove();
+        $('.hazard-impacted-js').remove();
+    }
+}
+
+function drawBrowseHazards(result) {
+    console.log(result);
+    let browseHtml = "";
+    for (var i = 0; i < result.length; i++) {
+        let entity = result[i];
+        let relatedName = entity['hazard']['value'].split('/').slice(-1);
+
+        let hazardType = (entity['subtype'] != null) ? entity['subtype']['value'].split('/').slice(-1) : extractHazardType(entity['types']['value']);
+
+        browseHtml += '<div class="prototype-card"><h4>' + entity['name']['value'] + '</h4><a href="../hazard/?hazard=' + relatedName + '" class="hidden"></a><p>' + hazardType + '</p></div>';
+    }
+    $('.explore-hazards-js').html(browseHtml);
+}
+
+function extractHazardType(types) {
+    let typeArray = types.split('|-|');
+
+    if(typeArray.length == 1)
+        return "HazardEvent";
+    else {
+        for(let t=0; t<typeArray.length; t++) {
+            let currType = typeArray[t].split('/').slice(-1);
+            if(currType != "HazardEvent")
+                return currType;
+        }
+    }
 }
 
 function drawPlaceEntity(result) {
@@ -413,10 +479,11 @@ function drawPlaceEntity(result) {
 
     $('.place-name-js').text(place['name']['value']);
 
-    let placeHtml = "<h2>" + place['name']['value'] + "</h2>";
+    let placeNameText = (place['name'] != null) ? place['name']['value'] : place['place']['value'].split('/').slice(-1);
+    let placeHtml = "<h2>" + placeNameText + "</h2>";
 
     if(place['typeLabel'] != null)
-        placeHtml += "<h4><b>Type</b>: " + place['typeLabel']['value'] + "</h4>";
+        placeHtml += "<h4>" + place['typeLabel']['value'] + "</h4>";
 
     let propertyString = "";
     if(place['population'] != null)
@@ -447,12 +514,38 @@ function drawPlaceEntity(result) {
     $('.place-iframe-js').val(iframeText);
 
     let withinHtml = "";
-    if(place['withins'] != null && place['withins']['value'] != '') {
-        let withins = place['withins']['value'].split('||');
-        let withinNames = place['wNames']['value'].split('||');
-        for (var i = 0; i < withins.length; i++) {
-            let relatedName = withins[i].split('/').slice(-1)
-            withinHtml += '<div class="prototype-card"><h4>' + withinNames[i] + '</h4><a href="../place/?place=' + relatedName + '" class="hidden"></a> </div>';
+    if(
+        (place['withins'] != null && place['withins']['value'] != '') || (place['rcontains'] != null && place['rcontains']['value'] != '')
+    ) {
+        if(place['withins'] != null && place['withins']['value'] != '') {
+            let withins = place['withins']['value'].split('|-|');
+            let withinNames = place['wNames']['value'].split('|-|');
+            let withinTypeLabels = place['wTypeLabels']['value'].split('|-|');
+            let uniqueWithin = [];
+            for (let i = 0; i < withins.length; i++) {
+                let relatedName = withins[i].split('/').slice(-1)[0];
+                if(uniqueWithin.includes(relatedName))
+                    continue;
+                else
+                    uniqueWithin.push(relatedName);
+                let actualName = (withinNames[i] != "") ? withinNames[i] : relatedName;
+                withinHtml += '<div class="prototype-card"><h4>' + actualName + '</h4><a href="../place/?place=' + relatedName + '" class="hidden"></a><p>' + withinTypeLabels[i] + '</p></div>';
+            }
+        }
+        if(place['rcontains'] != null && place['rcontains']['value'] != '') {
+            let rcontains = place['rcontains']['value'].split('|-|');
+            let rcontainNames = place['rcNames']['value'].split('|-|');
+            let rcontainTypeLabels = place['rcTypeLabels']['value'].split('|-|');
+            let uniqueRContain = [];
+            for (let i = 0; i < rcontains.length; i++) {
+                let relatedName = rcontains[i].split('/').slice(-1)[0];
+                if(uniqueRContain.includes(relatedName))
+                    continue;
+                else
+                    uniqueRContain.push(relatedName);
+                let actualName = (rcontainNames[i] != "") ? rcontainNames[i] : relatedName;
+                withinHtml += '<div class="prototype-card"><h4>' + actualName + '</h4><a href="../place/?place=' + relatedName + '" class="hidden"></a><p>' + rcontainTypeLabels[i] + '</p></div>';
+            }
         }
         $('.place-within-js').html(withinHtml);
     } else {
@@ -461,12 +554,38 @@ function drawPlaceEntity(result) {
     }
 
     let containsHtml = "";
-    if(place['contains'] != null && place['contains']['value'] != '') {
-        let contains = place['contains']['value'].split('||');
-        let containNames = place['cNames']['value'].split('||');
-        for (var i = 0; i < contains.length; i++) {
-            let relatedName = contains[i].split('/').slice(-1)
-            containsHtml += '<div class="prototype-card"><h4>' + containNames[i] + '</h4><a href="../place/?place=' + relatedName + '" class="hidden"></a> </div>';
+    if(
+        (place['contains'] != null && place['contains']['value'] != '') || (place['rwithins'] != null && place['rwithins']['value'] != '')
+    ) {
+        if(place['contains'] != null && place['contains']['value'] != '') {
+            let contains = place['contains']['value'].split('|-|');
+            let containNames = place['cNames']['value'].split('|-|');
+            let containTypeLabels = place['cTypeLabels']['value'].split('|-|');
+            let uniqueContain = [];
+            for (let i = 0; i < contains.length; i++) {
+                let relatedName = contains[i].split('/').slice(-1)[0];
+                if(uniqueContain.includes(relatedName))
+                    continue;
+                else
+                    uniqueContain.push(relatedName);
+                let actualName = (containNames[i] != "") ? containNames[i] : relatedName;
+                containsHtml += '<div class="prototype-card"><h4>' + actualName + '</h4><a href="../place/?place=' + relatedName + '" class="hidden"></a><p>' + containTypeLabels[i] + '</p></div>';
+            }
+        }
+        if(place['rwithins'] != null && place['rwithins']['value'] != '') {
+            let rwithins = place['rwithins']['value'].split('|-|');
+            let rwithinNames = place['rwNames']['value'].split('|-|');
+            let rwithinTypeLabels = place['rwTypeLabels']['value'].split('|-|');
+            let uniqueRWithin = [];
+            for (let i = 0; i < rwithins.length; i++) {
+                let relatedName = rwithins[i].split('/').slice(-1)[0];
+                if(uniqueRWithin.includes(relatedName))
+                    continue;
+                else
+                    uniqueRWithin.push(relatedName);
+                let actualName = (rwithinNames[i]!="") ? rwithinNames[i] : relatedName;
+                containsHtml += '<div class="prototype-card"><h4>' + actualName + '</h4><a href="../place/?place=' + relatedName + '" class="hidden"></a><p>' + rwithinTypeLabels[i] + '</p></div>';
+            }
         }
         $('.place-surround-js').html(containsHtml);
     } else {
@@ -475,21 +594,68 @@ function drawPlaceEntity(result) {
     }
 
     let surroundHtml = "";
-    if((place['touches'] != null && place['touches']['value'] != '') || (place['overlaps'] != null && place['overlaps']['value'] != '')) {
+    if(
+        (place['touches'] != null && place['touches']['value'] != '') || (place['overlaps'] != null && place['overlaps']['value'] != '') ||
+        (place['rtouches'] != null && place['rtouches']['value'] != '') || (place['roverlaps'] != null && place['roverlaps']['value'] != '')
+    ) {
         if(place['touches'] != null && place['touches']['value'] != '') {
-            let touches = place['touches']['value'].split('||');
-            let touchNames = place['tNames']['value'].split('||');
-            for (var i = 0; i < touches.length; i++) {
-                let relatedName = touches[i].split('/').slice(-1)
-                surroundHtml += '<div class="prototype-card"><h4>' + touchNames[i] + '</h4><a href="../place/?place=' + relatedName + '" class="hidden"></a> </div>';
+            let touches = place['touches']['value'].split('|-|');
+            let touchNames = place['tNames']['value'].split('|-|');
+            let touchTypeLabels = place['tTypeLabels']['value'].split('|-|');
+            let uniqueTouch = [];
+            for (let i = 0; i < touches.length; i++) {
+                let relatedName = touches[i].split('/').slice(-1)[0];
+                if(uniqueTouch.includes(relatedName))
+                    continue;
+                else
+                    uniqueTouch.push(relatedName);
+                let actualName = (touchNames[i]!="") ? touchNames[i] : relatedName;
+                surroundHtml += '<div class="prototype-card"><h4>' + actualName + '</h4><a href="../place/?place=' + relatedName + '" class="hidden"></a><p>' + touchTypeLabels[i] + '</p></div>';
+            }
+        }
+        if(place['rtouches'] != null && place['rtouches']['value'] != '') {
+            let rtouches = place['rtouches']['value'].split('|-|');
+            let rtouchNames = place['rtNames']['value'].split('|-|');
+            let rtouchTypeLabels = place['rtTypeLabels']['value'].split('|-|');
+            let uniqueRTouch = [];
+            for (let i = 0; i < rtouches.length; i++) {
+                let relatedName = rtouches[i].split('/').slice(-1)[0];
+                if(uniqueRTouch.includes(relatedName))
+                    continue;
+                else
+                    uniqueRTouch.push(relatedName);
+                let actualName = (rtouchNames[i]!="") ? rtouchNames[i] : relatedName;
+                surroundHtml += '<div class="prototype-card"><h4>' + actualName + '</h4><a href="../place/?place=' + relatedName + '" class="hidden"></a><p>' + rtouchTypeLabels[i] + '</p></div>';
             }
         }
         if(place['overlaps'] != null && place['overlaps']['value'] != '') {
-            let overlaps = place['overlaps']['value'].split('||');
-            let overlapNames = place['oNames']['value'].split('||');
-            for (var i = 0; i < overlaps.length; i++) {
-                let relatedName = overlaps[i].split('/').slice(-1)
-                surroundHtml += '<div class="prototype-card"><h4>' + overlapNames[i] + '</h4><a href="../place/?place=' + relatedName + '" class="hidden"></a> </div>';
+            let overlaps = place['overlaps']['value'].split('|-|');
+            let overlapNames = place['oNames']['value'].split('|-|');
+            let overlapTypeLabels = place['oTypeLabels']['value'].split('|-|');
+            let uniqueOverlap = [];
+            for (let i = 0; i < overlaps.length; i++) {
+                let relatedName = overlaps[i].split('/').slice(-1)[0];
+                if(uniqueOverlap.includes(relatedName))
+                    continue;
+                else
+                    uniqueOverlap.push(relatedName);
+                let actualName = (overlapNames[i]!="") ? overlapNames[i] : relatedName;
+                surroundHtml += '<div class="prototype-card"><h4>' + actualName + '</h4><a href="../place/?place=' + relatedName + '" class="hidden"></a><p>' + overlapTypeLabels[i] + '</p></div>';
+            }
+        }
+        if(place['roverlaps'] != null && place['roverlaps']['value'] != '') {
+            let roverlaps = place['roverlaps']['value'].split('|-|');
+            let roverlapNames = place['roNames']['value'].split('|-|');
+            let roverlapTypeLabels = place['roTypeLabels']['value'].split('|-|');
+            let uniquerROverlap = [];
+            for (let i = 0; i < roverlaps.length; i++) {
+                let relatedName = roverlaps[i].split('/').slice(-1)[0];
+                if(uniquerROverlap.includes(relatedName))
+                    continue;
+                else
+                    uniquerROverlap.push(relatedName);
+                let actualName = (roverlapNames[i]!="") ? roverlapNames[i] : relatedName;
+                surroundHtml += '<div class="prototype-card"><h4>' + actualName + '</h4><a href="../place/?place=' + relatedName + '" class="hidden"></a><p>' + roverlapTypeLabels[i] + '</p></div>';
             }
         }
         $('.place-nearby-js').html(surroundHtml);
@@ -500,10 +666,10 @@ function drawPlaceEntity(result) {
 
     let hazardsHtml = "";
     if(place['hazards'] != null && place['hazards']['value'] != '') {
-        let hazards = place['hazards']['value'].split('||');
-        let hazardNames = hazard['hNames']['value'].split('||');
-        for (var i = 0; i < hazards.length; i++) {
-            let relatedName = hazards[i].split('/').slice(-1)
+        let hazards = place['hazards']['value'].split('|-|');
+        let hazardNames = hazard['hNames']['value'].split('|-|');
+        for (let i = 0; i < hazards.length; i++) {
+            let relatedName = hazards[i].split('/').slice(-1)[0];
             hazardsHtml += '<div class="prototype-card"><h4>' + hazardNames[i] + '</h4><a href="../hazard/?hazard=' + relatedName + '" class="hidden"></a> </div>';
         }
         $('.place-hazard-js').html(hazardsHtml);
@@ -606,53 +772,111 @@ function drawBrowsePlaces(result) {
 }
 
 function getEntitiesForSearch() {
-    var entityQuery = "PREFIX kwgl-ont: <http://stko-kwg.geog.ucsb.edu/lod/lite-ontology/>\n" +
-        "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n" +
-        "PREFIX kwglr: <http://stko-kwg.geog.ucsb.edu/lod/lite-resource/>\n" +
-        "select distinct ?entity ?type ?name ?fullentity\n" +
-        "where { \n" +
-        "    ?entity rdf:type ?type.\n" +
-        "    FILTER(?type = kwgl-ont:HazardEvent || ?type =  kwgl-ont:Place)\n" +
-        "    ?entity kwgl-ont:hasName ?name.\n" +
-        "    ?entity kwgl-ont:hasKWGEntity ?fullentity.\n" +
-        "}";
-
-    submitQuery(entityQuery, "searchEntities");
-}
-
-function searchEntities(result) {
-    console.log(result);
     var pageUrl = new URL(window.location.toString());
     let search_params = pageUrl.searchParams;
-    if(search_params.get('searchbar') != null) {
-        let searchTerm = search_params.get('searchbar');
 
+    if(search_params.get('searchtype') != null && search_params.get('searchtype') == "hazard") {
+        var entityQuery = "PREFIX kwgl-ont: <http://stko-kwg.geog.ucsb.edu/lod/lite-ontology/>\n" +
+            "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n" +
+            "PREFIX kwglr: <http://stko-kwg.geog.ucsb.edu/lod/lite-resource/>\n" +
+            "select ?hazard ?name ?fullentity (GROUP_CONCAT(?type ; separator=\"|-|\") AS ?types) ?subtype\n" +
+            "where {\n" +
+            "    ?hazard a kwgl-ont:HazardEvent.\n" +
+            "    ?hazard kwgl-ont:hasName ?name.\n" +
+            "    ?hazard kwgl-ont:hasKWGEntity ?fullentity.\n" +
+            "    ?hazard rdf:type ?type.\n" +
+            "    optional { ?hazard kwgl-ont:isOfFireType ?subtype. }\n" +
+            "} GROUP BY ?hazard ?name ?fullentity ?subtype";
+
+        submitQuery(entityQuery, "searchHazards");
+    } else if(search_params.get('searchtype') != null && search_params.get('searchtype') == "place") {
+        var entityQuery = "PREFIX kwgl-ont: <http://stko-kwg.geog.ucsb.edu/lod/lite-ontology/>\n" +
+            "PREFIX kwglr: <http://stko-kwg.geog.ucsb.edu/lod/lite-resource/>\n" +
+            "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\n" +
+            "select ?place ?fullentity ?typeLabel ?name " +
+            "where {\n" +
+            "    ?place a kwgl-ont:Place.\n" +
+            "    ?place kwgl-ont:hasKWGEntity ?fullentity.\n" +
+            "    ?place kwgl-ont:hasPlaceType ?placeType.\n" +
+            "    ?placeType rdfs:label ?typeLabel.\n" +
+            "    optional { ?place kwgl-ont:hasName ?name. }\n" +
+            "}";
+
+        submitQuery(entityQuery, "searchPlaces");
+    } else {
+        $('.search-results-header-js').text('Error: Invalid search type.');
+    }
+}
+
+function searchHazards(result) {
+    var pageUrl = new URL(window.location.toString());
+    let search_params = pageUrl.searchParams;
+
+    let searchTerm = (search_params.get('searchbar') != null) ? search_params.get('searchbar') : "";
+
+    let searchResults = executeSearch(result, searchTerm);
+
+    console.log(searchResults);
+    let searchHtml = '';
+    for (let i = 0; i < searchResults.length; i++) {
+        let entity = searchResults[i]['item'];
+        let relatedName = entity['hazard']['value'].split('/').slice(-1);
+
+        let hazardType = (entity['subtype'] != null) ? entity['subtype']['value'].split('/').slice(-1) : extractHazardType(entity['types']['value']);
+
+        searchHtml += '<div class="prototype-card"><h4>' + entity['name']['value'] + '</h4><a href="../../hazard/?hazard=' + relatedName + '" class="hidden"></a><p>' + hazardType + '</p></div>';
+    }
+
+    $('.search-results-header-js').text(searchResults.length + ' results for "' + searchTerm + '"');
+    $('.search-results-js').append(searchHtml);
+}
+
+function searchPlaces(result) {
+    var pageUrl = new URL(window.location.toString());
+    let search_params = pageUrl.searchParams;
+
+    let searchTerm = (search_params.get('searchbar') != null) ? search_params.get('searchbar') : "";
+
+    let searchResults = executeSearch(result, searchTerm);
+
+    console.log(searchResults);
+    let searchHtml = '';
+    for (let i = 0; i < searchResults.length; i++) {
+        let entity = searchResults[i]['item'];
+        let relatedName = entity['place']['value'].split('/').slice(-1);
+        let placeType = (entity['typeLabel'] != null) ? '<p>' + entity['typeLabel']['value'] + '</p>' : '';
+
+        searchHtml += '<div class="prototype-card"><h4>' + entity['name']['value'] +
+            '</h4><a href="../../place/?place=' + relatedName + '" class="hidden"></a>' + placeType + '</div>';
+    }
+
+    $('.search-results-header-js').text(searchResults.length + ' results for "' + searchTerm + '"');
+    $('.search-results-js').append(searchHtml);
+}
+
+function executeSearch(entities, searchTerm) {
+    let searchResults = [];
+    if(searchTerm != "") {
         const options = {
             includeScore: true,
             useExtendedSearch: true,
-            keys: ['name.value']
+            keys: ['name.value', 'place.value']
         };
-        const fuse = new Fuse(result, options);
-        const searchResults = fuse.search("'"+searchTerm);
-
-        console.log(searchResults);
-        let searchHtml = '';
-        let searchCnt = searchResults.length > 100 ? 100 : searchResults.length;
-        for (var i = 0; i < searchCnt; i++) {
-            let result = searchResults[i]['item'];
-            let typeLabel = "";
-            if(result["type"]["value"].split('/').slice(-1) == "HazardEvent")
-                typeLabel = "../../hazard/?hazard=";
-            else if(result["type"]["value"].split('/').slice(-1) == "Place")
-                typeLabel = "../../place/?place=";
-            let entityLink = typeLabel + result["entity"]["value"].split('/').slice(-1);
-
-            searchHtml += '<div class="prototype-card"><h4>' + result["name"]["value"] + '</h4><a href="' + entityLink + '" class="hidden"></a> </div>';
-        }
-
-        $('.search-results-header-js').text('Search Results for "' + searchTerm + '"');
-        $('.search-results-js').append(searchHtml);
+        const fuse = new Fuse(entities, options);
+        searchResults = fuse.search("'" + searchTerm);
+    } else {
+        searchResults = returnAllRecords(entities);
     }
+
+    return searchResults;
+}
+
+function returnAllRecords(records) {
+    return records.map((doc, idx) => ({
+        item: doc,
+        score: 1,
+        refIndex: idx
+    }));
 }
 
 function submitQuery(query, callBackFunction) {
