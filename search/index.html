@@ -49,10 +49,24 @@
 		<div class="background"> <img src="../assets/images/background-landing.png" alt="Background Imagery - County Map of the USA with a vectored web of lines and nodes wrapping across the country, signifying connections" /> </div>
 	</section>
 	<section class="blog">
+		<h2>Search Hazards by Name</h2>
 		<div>
 			<form class="search-form" action="results/">
 				<label for="searchbar" class="sr-only">searchbar</label>
-				<input id="searchbar" class="search-field main-search" type="text" name="searchbar" placeholder="Search Places and Hazards"/>
+				<input name="searchtype" type="hidden" value="hazard"/>
+				<input id="searchbar" class="search-field main-search" type="text" name="searchbar" placeholder="Enter keywords..."/>
+				<button class="search-icon-2" type="submit"><img src="../assets/images/search.svg" alt="search-icon"></button>
+			</form>
+		</div>
+		<br/>
+		<br/>
+		<br/>
+		<h2>Search Places by Name</h2>
+		<div>
+			<form class="search-form" action="results/">
+				<label for="searchbar" class="sr-only">searchbar</label>
+				<input name="searchtype" type="hidden" value="place"/>
+				<input id="searchbar" class="search-field main-search" type="text" name="searchbar" placeholder="Enter keywords..."/>
 				<button class="search-icon-2" type="submit"><img src="../assets/images/search.svg" alt="search-icon"></button>
 			</form>
 		</div>

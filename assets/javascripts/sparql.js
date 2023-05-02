@@ -771,54 +771,112 @@ function drawBrowsePlaces(result) {
     $('.explore-places-js').html(browseHtml);
 }
 
-function getEntitiesForSearch() { //TODO
-    var entityQuery = "PREFIX kwgl-ont: <http://stko-kwg.geog.ucsb.edu/lod/lite-ontology/>\n" +
-        "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n" +
-        "PREFIX kwglr: <http://stko-kwg.geog.ucsb.edu/lod/lite-resource/>\n" +
-        "select distinct ?entity ?type ?name ?fullentity\n" +
-        "where { \n" +
-        "    ?entity rdf:type ?type.\n" +
-        "    FILTER(?type = kwgl-ont:HazardEvent || ?type =  kwgl-ont:Place)\n" +
-        "    ?entity kwgl-ont:hasName ?name.\n" +
-        "    ?entity kwgl-ont:hasKWGEntity ?fullentity.\n" +
-        "}";
-
-    submitQuery(entityQuery, "searchEntities");
-}
-
-function searchEntities(result) { //TODO
-    console.log(result);
+function getEntitiesForSearch() {
     var pageUrl = new URL(window.location.toString());
     let search_params = pageUrl.searchParams;
-    if(search_params.get('searchbar') != null) {
-        let searchTerm = search_params.get('searchbar');
 
+    if(search_params.get('searchtype') != null && search_params.get('searchtype') == "hazard") {
+        var entityQuery = "PREFIX kwgl-ont: <http://stko-kwg.geog.ucsb.edu/lod/lite-ontology/>\n" +
+            "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n" +
+            "PREFIX kwglr: <http://stko-kwg.geog.ucsb.edu/lod/lite-resource/>\n" +
+            "select ?hazard ?name ?fullentity (GROUP_CONCAT(?type ; separator=\"|-|\") AS ?types) ?subtype\n" +
+            "where {\n" +
+            "    ?hazard a kwgl-ont:HazardEvent.\n" +
+            "    ?hazard kwgl-ont:hasName ?name.\n" +
+            "    ?hazard kwgl-ont:hasKWGEntity ?fullentity.\n" +
+            "    ?hazard rdf:type ?type.\n" +
+            "    optional { ?hazard kwgl-ont:isOfFireType ?subtype. }\n" +
+            "} GROUP BY ?hazard ?name ?fullentity ?subtype";
+
+        submitQuery(entityQuery, "searchHazards");
+    } else if(search_params.get('searchtype') != null && search_params.get('searchtype') == "place") {
+        var entityQuery = "PREFIX kwgl-ont: <http://stko-kwg.geog.ucsb.edu/lod/lite-ontology/>\n" +
+            "PREFIX kwglr: <http://stko-kwg.geog.ucsb.edu/lod/lite-resource/>\n" +
+            "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\n" +
+            "select ?place ?fullentity ?typeLabel ?name " +
+            "where {\n" +
+            "    ?place a kwgl-ont:Place.\n" +
+            "    ?place kwgl-ont:hasKWGEntity ?fullentity.\n" +
+            "    ?place kwgl-ont:hasPlaceType ?placeType.\n" +
+            "    ?placeType rdfs:label ?typeLabel.\n" +
+            "    optional { ?place kwgl-ont:hasName ?name. }\n" +
+            "}";
+
+        submitQuery(entityQuery, "searchPlaces");
+    } else {
+        $('.search-results-header-js').text('Error: Invalid search type.');
+    }
+}
+
+function searchHazards(result) {
+    var pageUrl = new URL(window.location.toString());
+    let search_params = pageUrl.searchParams;
+
+    let searchTerm = (search_params.get('searchbar') != null) ? search_params.get('searchbar') : "";
+
+    let searchResults = executeSearch(result, searchTerm);
+
+    console.log(searchResults);
+    let searchHtml = '';
+    for (let i = 0; i < searchResults.length; i++) {
+        let entity = searchResults[i]['item'];
+        let relatedName = entity['hazard']['value'].split('/').slice(-1);
+
+        let hazardType = (entity['subtype'] != null) ? entity['subtype']['value'].split('/').slice(-1) : extractHazardType(entity['types']['value']);
+
+        searchHtml += '<div class="prototype-card"><h4>' + entity['name']['value'] + '</h4><a href="../../hazard/?hazard=' + relatedName + '" class="hidden"></a><p>' + hazardType + '</p></div>';
+    }
+
+    $('.search-results-header-js').text(searchResults.length + ' results for "' + searchTerm + '"');
+    $('.search-results-js').append(searchHtml);
+}
+
+function searchPlaces(result) {
+    var pageUrl = new URL(window.location.toString());
+    let search_params = pageUrl.searchParams;
+
+    let searchTerm = (search_params.get('searchbar') != null) ? search_params.get('searchbar') : "";
+
+    let searchResults = executeSearch(result, searchTerm);
+
+    console.log(searchResults);
+    let searchHtml = '';
+    for (let i = 0; i < searchResults.length; i++) {
+        let entity = searchResults[i]['item'];
+        let relatedName = entity['place']['value'].split('/').slice(-1);
+        let placeType = (entity['typeLabel'] != null) ? '<p>' + entity['typeLabel']['value'] + '</p>' : '';
+
+        searchHtml += '<div class="prototype-card"><h4>' + entity['name']['value'] +
+            '</h4><a href="../../place/?place=' + relatedName + '" class="hidden"></a>' + placeType + '</div>';
+    }
+
+    $('.search-results-header-js').text(searchResults.length + ' results for "' + searchTerm + '"');
+    $('.search-results-js').append(searchHtml);
+}
+
+function executeSearch(entities, searchTerm) {
+    let searchResults = [];
+    if(searchTerm != "") {
         const options = {
             includeScore: true,
             useExtendedSearch: true,
-            keys: ['name.value']
+            keys: ['name.value', 'place.value']
         };
-        const fuse = new Fuse(result, options);
-        const searchResults = fuse.search("'"+searchTerm);
-
-        console.log(searchResults);
-        let searchHtml = '';
-        let searchCnt = searchResults.length > 100 ? 100 : searchResults.length;
-        for (var i = 0; i < searchCnt; i++) {
-            let result = searchResults[i]['item'];
-            let typeLabel = "";
-            if(result["type"]["value"].split('/').slice(-1) == "HazardEvent")
-                typeLabel = "../../hazard/?hazard=";
-            else if(result["type"]["value"].split('/').slice(-1) == "Place")
-                typeLabel = "../../place/?place=";
-            let entityLink = typeLabel + result["entity"]["value"].split('/').slice(-1);
-
-            searchHtml += '<div class="prototype-card"><h4>' + result["name"]["value"] + '</h4><a href="' + entityLink + '" class="hidden"></a> </div>';
-        }
-
-        $('.search-results-header-js').text('Search Results for "' + searchTerm + '"');
-        $('.search-results-js').append(searchHtml);
+        const fuse = new Fuse(entities, options);
+        searchResults = fuse.search("'" + searchTerm);
+    } else {
+        searchResults = returnAllRecords(entities);
     }
+
+    return searchResults;
+}
+
+function returnAllRecords(records) {
+    return records.map((doc, idx) => ({
+        item: doc,
+        score: 1,
+        refIndex: idx
+    }));
 }
 
 function submitQuery(query, callBackFunction) {
