@@ -11,15 +11,15 @@ function getHazardEntity(entityUri) {
     var hazardQuery = "PREFIX kwgl-ont: <http://stko-kwg.geog.ucsb.edu/lod/lite-ontology/>\n" +
         "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n" +
         "PREFIX kwglr: <http://stko-kwg.geog.ucsb.edu/lod/lite-resource/>\n" +
-        "select ?hazard ?name ?fullentity (GROUP_CONCAT(?type ; separator=\"|-|\") AS ?types) ?subtype ?start ?end\n" +
+        "select ?hazard ?name ?fullentity ?type ?subtype ?start ?end\n" +
         "(GROUP_CONCAT(?place ; separator=\"|-|\") AS ?places) (GROUP_CONCAT(?pName ; separator=\"|-|\") AS ?pNames) (GROUP_CONCAT(?pTypeLabel ; separator=\"|-|\") AS ?pTypeLabels)\n" +
         "?area ?deaths ?infrastructuredamage ?cropdamage\n" +
         "where {\n" +
-        "    ?hazard a kwgl-ont:HazardEvent.\n" +
+        "    ?hazard rdf:type ?type.\n" +
+        "    FILTER(?type=kwgl-ont:Fire || ?type=kwgl-ont:Hurricane || ?type=kwgl-ont:Tornado || ?type=kwgl-ont:Earthquake)\n" +
         "    FILTER (?hazard = kwglr:" + entityUri + ")\n" +
         "    ?hazard kwgl-ont:hasName ?name.\n" +
         "    ?hazard kwgl-ont:hasKWGEntity ?fullentity.\n" +
-        "    ?hazard rdf:type ?type.\n" +
         "    optional { ?hazard kwgl-ont:isOfFireType ?subtype. }\n" +
         "    optional { ?hazard kwgl-ont:hasStartDate ?start. }\n" +
         "    optional { ?hazard kwgl-ont:hasEndDate ?end. }\n" +
@@ -35,7 +35,7 @@ function getHazardEntity(entityUri) {
         "    optional { ?hazard kwgl-ont:numberOfDeaths ?deaths. }\n" +
         "    optional { ?hazard kwgl-ont:damageToInfrastructureInDollars ?infrastructuredamage. }\n" +
         "    optional { ?hazard kwgl-ont:damageToCropsInDollars ?cropdamage. }\n" +
-        "} GROUP BY ?hazard ?name ?fullentity ?subtype ?start ?end ?area ?deaths ?infrastructuredamage ?cropdamage";
+        "} GROUP BY ?hazard ?name ?fullentity ?type ?subtype ?start ?end ?area ?deaths ?infrastructuredamage ?cropdamage";
 
     submitQuery(hazardQuery, "drawHazardEntity");
 }
@@ -44,15 +44,15 @@ function getRandomHazards() {
     var hazardQuery = "PREFIX kwgl-ont: <http://stko-kwg.geog.ucsb.edu/lod/lite-ontology/>\n" +
         "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n" +
         "PREFIX kwglr: <http://stko-kwg.geog.ucsb.edu/lod/lite-resource/>\n" +
-        "select ?hazard ?name ?fullentity (GROUP_CONCAT(?type ; separator=\"|-|\") AS ?types) ?subtype\n" +
+        "select ?hazard ?name ?fullentity ?type ?subtype\n" +
         "where {\n" +
-        "    ?hazard a kwgl-ont:HazardEvent.\n" +
+        "    ?hazard rdf:type ?type.\n" +
+        "    FILTER(?type=kwgl-ont:Fire || ?type=kwgl-ont:Hurricane || ?type=kwgl-ont:Tornado || ?type=kwgl-ont:Earthquake)\n" +
         "    ?hazard kwgl-ont:hasName ?name.\n" +
         "    ?hazard kwgl-ont:hasKWGEntity ?fullentity.\n" +
-        "    ?hazard rdf:type ?type.\n" +
         "    optional { ?hazard kwgl-ont:isOfFireType ?subtype. }\n" +
         "    BIND(SHA512(CONCAT(STR(RAND()), STR(?hazard))) AS ?random)\n" +
-        "} GROUP BY ?hazard ?name ?fullentity ?subtype ?random ORDER BY ?random LIMIT 10";
+        "} ORDER BY ?random LIMIT 10";
 
     submitQuery(hazardQuery, "drawBrowseHazards");
 }
@@ -71,7 +71,7 @@ function getPlaceEntity(entityUri) {
         "(GROUP_CONCAT(?rtouch ; separator=\"|-|\") AS ?rtouches) (GROUP_CONCAT(?rtName ; separator=\"|-|\") AS ?rtNames) (GROUP_CONCAT(?rtTypeLabel ; separator=\"|-|\") AS ?rtTypeLabels)\n" +
         "(GROUP_CONCAT(?overlap ; separator=\"|-|\") AS ?overlaps) (GROUP_CONCAT(?oName ; separator=\"|-|\") AS ?oNames) (GROUP_CONCAT(?oTypeLabel ; separator=\"|-|\") AS ?oTypeLabels)\n" +
         "(GROUP_CONCAT(?roverlap ; separator=\"|-|\") AS ?roverlaps) (GROUP_CONCAT(?roName ; separator=\"|-|\") AS ?roNames) (GROUP_CONCAT(?roTypeLabel ; separator=\"|-|\") AS ?roTypeLabels)\n" +
-        "(GROUP_CONCAT(?hazard ; separator=\"|-|\") AS ?hazards) (GROUP_CONCAT(?hName ; separator=\"|-|\") AS ?hNames)\n" +
+        "(GROUP_CONCAT(?hazard ; separator=\"|-|\") AS ?hazards) (GROUP_CONCAT(?hName ; separator=\"|-|\") AS ?hNames) (GROUP_CONCAT(?hType ; separator=\"|-|\") AS ?hTypes) (GROUP_CONCAT(?hSubtype ; separator=\"|-|\") AS ?hSubtypes)\n" +
         "where { \n" +
         "    ?place a kwgl-ont:Place.\n" +
         "    FILTER (?place = kwglr:" + entityUri + ") \n" +
@@ -150,9 +150,11 @@ function getPlaceEntity(entityUri) {
         "    }\n" +
         "    optional {\n" +
         "        ?place kwgl-ont:impactedBy ?hazard.\n" +
-        "        ?hazard a kwgl-ont:HazardEvent.\n" +
+        "        ?hazard rdf:type ?hType.\n" +
+        "        FILTER(?hType=kwgl-ont:Fire || ?hType=kwgl-ont:Hurricane || ?hType=kwgl-ont:Tornado || ?hType=kwgl-ont:Earthquake)\n" +
         "        ?hazard kwgl-ont:hasName ?hName.\n" +
         "        ?hazard kwgl-ont:hasKWGEntity ?hEntity.\n" +
+        "        optional { ?hazard kwgl-ont:isOfFireType ?hSubtype. }\n" +
         "    }\n" +
         "} GROUP BY ?place ?name ?fullentity ?typeLabel ?obese ?poverty ?diabetic ?population ?households";
 
@@ -391,8 +393,8 @@ function drawHazardEntity(result) {
 
     if(hazard['subtype'] != null)
         hazardHtml += "<h4>" + hazard['subtype']['value'].split('/').slice(-1) + "</h4>";
-    else if(hazard['types'] != null)
-        hazardHtml += "<h4>" + extractHazardType(hazard['types']['value']) + "</h4>";
+    else if(hazard['type'] != null)
+        hazardHtml += "<h4>" + hazard['type']['value'].split('/').slice(-1) + "</h4>";
 
     let propertyString = "";
     if(hazard['start'] != null) {
@@ -457,25 +459,11 @@ function drawBrowseHazards(result) {
         let entity = result[i];
         let relatedName = entity['hazard']['value'].split('/').slice(-1);
 
-        let hazardType = (entity['subtype'] != null) ? entity['subtype']['value'].split('/').slice(-1) : extractHazardType(entity['types']['value']);
+        let hazardType = (entity['subtype'] != null) ? entity['subtype']['value'].split('/').slice(-1) : entity['type']['value'].split('/').slice(-1);
 
         browseHtml += '<div class="prototype-card"><h4>' + entity['name']['value'] + '</h4><a href="../hazard/?hazard=' + relatedName + '" class="hidden"></a><p>' + hazardType + '</p></div>';
     }
     $('.explore-hazards-js').html(browseHtml);
-}
-
-function extractHazardType(types) {
-    let typeArray = types.split('|-|');
-
-    if(typeArray.length == 1)
-        return "HazardEvent";
-    else {
-        for(let t=0; t<typeArray.length; t++) {
-            let currType = typeArray[t].split('/').slice(-1);
-            if(currType != "HazardEvent")
-                return currType;
-        }
-    }
 }
 
 function drawPlaceEntity(result) {
@@ -673,9 +661,14 @@ function drawPlaceEntity(result) {
     if(place['hazards'] != null && place['hazards']['value'] != '') {
         let hazards = place['hazards']['value'].split('|-|');
         let hazardNames = place['hNames']['value'].split('|-|');
+        let hazardTypes = place['hTypes']['value'].split('|-|');
+        let hazardSubtypes = place['hSubtypes']['value'].split('|-|');
         for (let i = 0; i < hazards.length; i++) {
             let relatedName = hazards[i].split('/').slice(-1)[0];
-            hazardsHtml += '<div class="prototype-card"><h4>' + hazardNames[i] + '</h4><a href="../hazard/?hazard=' + relatedName + '" class="hidden"></a> </div>';
+
+            let hazardType = (hazardSubtypes[i] != "") ? hazardSubtypes[i].split('/').slice(-1) : hazardTypes[i].split('/').slice(-1);
+
+            hazardsHtml += '<div class="prototype-card"><h4>' + hazardNames[i] + '</h4><a href="../hazard/?hazard=' + relatedName + '" class="hidden"></a><p>' + hazardType + '</p></div>';
         }
         $('.place-hazard-js').html(hazardsHtml);
     } else {
@@ -784,14 +777,14 @@ function getEntitiesForSearch() {
         var entityQuery = "PREFIX kwgl-ont: <http://stko-kwg.geog.ucsb.edu/lod/lite-ontology/>\n" +
             "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n" +
             "PREFIX kwglr: <http://stko-kwg.geog.ucsb.edu/lod/lite-resource/>\n" +
-            "select ?hazard ?name ?fullentity (GROUP_CONCAT(?type ; separator=\"|-|\") AS ?types) ?subtype\n" +
+            "select ?hazard ?name ?fullentity ?type ?subtype\n" +
             "where {\n" +
-            "    ?hazard a kwgl-ont:HazardEvent.\n" +
+            "    ?hazard rdf:type ?type.\n" +
+            "    FILTER(?type=kwgl-ont:Fire || ?type=kwgl-ont:Hurricane || ?type=kwgl-ont:Tornado || ?type=kwgl-ont:Earthquake)\n" +
             "    ?hazard kwgl-ont:hasName ?name.\n" +
             "    ?hazard kwgl-ont:hasKWGEntity ?fullentity.\n" +
-            "    ?hazard rdf:type ?type.\n" +
             "    optional { ?hazard kwgl-ont:isOfFireType ?subtype. }\n" +
-            "} GROUP BY ?hazard ?name ?fullentity ?subtype";
+            "}";
 
         submitQuery(entityQuery, "searchHazards");
     } else if(search_params.get('searchtype') != null && search_params.get('searchtype') == "place") {
@@ -827,7 +820,7 @@ function searchHazards(result) {
         let entity = searchResults[i]['item'];
         let relatedName = entity['hazard']['value'].split('/').slice(-1);
 
-        let hazardType = (entity['subtype'] != null) ? entity['subtype']['value'].split('/').slice(-1) : extractHazardType(entity['types']['value']);
+        let hazardType = (entity['subtype'] != null) ? entity['subtype']['value'].split('/').slice(-1) : entity['type']['value'].split('/').slice(-1);
 
         searchHtml += '<div class="prototype-card"><h4>' + entity['name']['value'] + '</h4><a href="../../hazard/?hazard=' + relatedName + '" class="hidden"></a><p>' + hazardType + '</p></div>';
     }
