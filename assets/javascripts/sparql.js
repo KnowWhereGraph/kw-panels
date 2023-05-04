@@ -29,7 +29,7 @@ function getHazardEntity(entityUri) {
         "        optional { ?place kwgl-ont:hasName ?pName. }\n" +
         "        ?place kwgl-ont:hasKWGEntity ?pEntity.\n" +
         "        ?place kwgl-ont:hasPlaceType ?pType.\n" +
-        "        ?placeType rdfs:label ?pTypeLabel.\n" +
+        "        ?pType rdfs:label ?pTypeLabel.\n" +
         "    }\n" +
         "    optional { ?hazard kwgl-ont:affectedAreaInAcres ?area. }\n" +
         "    optional { ?hazard kwgl-ont:numberOfDeaths ?deaths. }\n" +
@@ -433,8 +433,13 @@ function drawHazardEntity(result) {
         let places = hazard['places']['value'].split('|-|');
         let placeNames = hazard['pNames']['value'].split('|-|');
         let placeTypeLabels = hazard['pTypeLabels']['value'].split('|-|');
+        let uniqueImpacted = [];
         for (let i = 0; i < places.length; i++) {
             let relatedName = places[i].split('/').slice(-1)[0];
+            if(uniqueImpacted.includes(relatedName))
+                continue;
+            else
+                uniqueImpacted.push(relatedName);
             let actualName = (placeNames[i]!="") ? placeNames[i] : relatedName;
             placesHtml += '<div class="prototype-card"><h4>' + actualName + '</h4><a href="../place/?place=' + relatedName + '" class="hidden"></a><p>' + placeTypeLabels[i] + '</p></div>';
         }
@@ -667,7 +672,7 @@ function drawPlaceEntity(result) {
     let hazardsHtml = "";
     if(place['hazards'] != null && place['hazards']['value'] != '') {
         let hazards = place['hazards']['value'].split('|-|');
-        let hazardNames = hazard['hNames']['value'].split('|-|');
+        let hazardNames = place['hNames']['value'].split('|-|');
         for (let i = 0; i < hazards.length; i++) {
             let relatedName = hazards[i].split('/').slice(-1)[0];
             hazardsHtml += '<div class="prototype-card"><h4>' + hazardNames[i] + '</h4><a href="../hazard/?hazard=' + relatedName + '" class="hidden"></a> </div>';
