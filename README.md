@@ -4,6 +4,9 @@ KnowWherePanel is a web interface for navigating the Place and Hazard entities i
 ## Installation
 KnowWherePanel is a fully static website consisting of HTML, JS, CSS, etc. Installation is as simple as dragging and dropping the site onto your webserver.
 
+## Contributing
+We welcome all feedback on our project. In particular, we provide a bug report and feature request template, which can be accessed via the "Issues" button above. For wider contributing guidelines to KnowWhereGraph, please visit our [website](https://knowwheregraph.org/).
+
 ## License
 This work is covered under [Apache License 2.0](LICENSE)
 
